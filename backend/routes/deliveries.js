@@ -55,11 +55,35 @@ router.post('/', async (req, res, next) => {
     const lastNum = last ? parseInt(last.fs_number.replace('FS-','')) : 0;
     const fs_number = 'FS-' + String(lastNum + 1).padStart(4, '0');
 
+    // Lock supermarket and fetch current selling price for consistent receivable posting.
+    const { rows: [supermarket] } = await client.query(
+      `SELECT id FROM supermarkets WHERE id = $1 FOR UPDATE`,
+      [supermarket_id]
+    );
+    if (!supermarket) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Supermarket not found' });
+    }
+    const { rows: [price] } = await client.query(`SELECT price_per_kg FROM pricing ORDER BY effective_date DESC LIMIT 1`);
+    const pricePerKg = parseFloat(price?.price_per_kg || 85);
+
     // Create delivery
     const { rows } = await client.query(`
-      INSERT INTO deliveries (fs_number, supermarket_id, qty_delivered, delivery_date, driver, notes, status)
-      VALUES ($1,$2,$3,$4,$5,$6,'Delivered') RETURNING *
+      INSERT INTO deliveries (fs_number, supermarket_id, qty_delivered, qty_sold, delivery_date, driver, notes, status)
+      VALUES ($1,$2,$3,$3,$4,$5,$6,'Delivered') RETURNING *
     `, [fs_number, supermarket_id, qty_delivered, delivery_date || new Date().toISOString().slice(0,10), driver || null, notes || null]);
+
+    // Delivery posted means receivable is created immediately.
+    const deliveryRevenue = parseFloat(qty_delivered) * pricePerKg;
+    await client.query(
+      `UPDATE supermarkets SET outstanding = outstanding + $1 WHERE id = $2`,
+      [deliveryRevenue, supermarket_id]
+    );
+
+    await client.query(`
+      INSERT INTO sales_reports (delivery_id, supermarket_id, qty_sold, price_per_kg, report_date, notes)
+      VALUES ($1,$2,$3,$4,$5,$6)
+    `, [rows[0].id, supermarket_id, qty_delivered, pricePerKg, delivery_date || new Date().toISOString().slice(0,10), 'Auto-posted on delivery']);
 
     // Deduct from warehouse
     const ref = 'INV-' + Date.now();
@@ -116,7 +140,7 @@ router.patch('/:id/sales', async (req, res, next) => {
     `, [qty_sold || 0, qty_returned || 0, d.id]);
 
     // Log sales report if new sales
-    if (additionalSold > 0) {
+    if (additionalSold !== 0) {
       await client.query(`
         INSERT INTO sales_reports (delivery_id, supermarket_id, qty_sold, price_per_kg, report_date, notes)
         VALUES ($1,$2,$3,$4,NOW(),$5)
@@ -125,7 +149,7 @@ router.patch('/:id/sales', async (req, res, next) => {
       // Update supermarket outstanding balance
       const revenue = additionalSold * pricePerKg;
       await client.query(`
-        UPDATE supermarkets SET outstanding = outstanding + $1 WHERE id = $2
+        UPDATE supermarkets SET outstanding = GREATEST(0, outstanding + $1) WHERE id = $2
       `, [revenue, d.supermarket_id]);
     }
 
