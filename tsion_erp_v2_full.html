@@ -1,0 +1,2280 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tsion ERP</title>
+<style>
+:root{
+  /* Background layers */
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f5f4f1;
+  --color-background-tertiary:#eeecea;
+  /* Text */
+  --color-text-primary:#1a1a18;
+  --color-text-secondary:#5a5955;
+  --color-text-tertiary:#9a9890;
+  /* Borders */
+  --color-border-primary:#c8c7c2;
+  --color-border-secondary:#dedad4;
+  --color-border-tertiary:#e8e7e2;
+  /* Success (green) */
+  --color-background-success:#e8f5ed;
+  --color-text-success:#1d6b3a;
+  /* Warning (amber) */
+  --color-background-warning:#fef6e4;
+  --color-text-warning:#8a5a00;
+  /* Danger (red) */
+  --color-background-danger:#fdecea;
+  --color-text-danger:#9b2320;
+  /* Info (blue) */
+  --color-background-info:#e8f0fe;
+  --color-text-info:#1a4e8c;
+  /* Radii & type */
+  --border-radius-sm:5px;
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --font-mono:'SF Mono','Fira Code',Consolas,monospace;
+}
+</style>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--brand:#8B1A1A;--brand-l:#C0392B;--brand-bg:#FDF5F5;--nav-w:210px}
+body{font-family:var(--font-sans,sans-serif);font-size:13px;color:var(--color-text-primary);background:var(--color-background-tertiary);min-height:100vh}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.app{display:flex;min-height:100vh;overflow:hidden}
+.sidebar{width:var(--nav-w);background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sb-brand{padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.sb-logo{width:28px;height:28px;background:var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:500;font-size:12px;margin-bottom:6px}
+.sb-title{font-size:12px;font-weight:500;color:var(--color-text-primary)}
+.sb-sub{font-size:10px;color:var(--color-text-secondary)}
+.nav-sec{padding:6px 0}
+.nav-lbl{font-size:10px;font-weight:500;color:var(--color-text-tertiary);padding:4px 14px;text-transform:uppercase;letter-spacing:.06em}
+.nav-item{display:flex;align-items:center;gap:7px;padding:6px 14px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);border-left:2px solid transparent;transition:all .12s}
+.nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
+.nav-item.active{background:var(--brand-bg);color:var(--brand);border-left-color:var(--brand);font-weight:500}
+.nav-icon{width:14px;text-align:center;font-size:13px;flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:6px}
+.mobile-nav-toggle{display:none;width:38px;height:38px;border:none;border-radius:10px;background:var(--color-background-secondary);color:var(--color-text-primary);font-size:18px;cursor:pointer}
+.status-chip{padding:5px 10px;border-radius:999px;background:var(--color-background-success);color:var(--color-text-success);font-size:11px;font-weight:600;white-space:nowrap}
+.status-chip.offline{background:var(--color-background-warning);color:var(--color-text-warning)}
+.offline-banner{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--color-background-warning);color:var(--color-text-warning);border-bottom:0.5px solid var(--color-border-secondary);font-size:12px;font-weight:500}
+.content{flex:1;overflow-y:auto;padding:16px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:9px 14px;border-radius:12px;border:1px solid var(--color-border-secondary);background:linear-gradient(180deg,#ffffff 0%,#f6f3ef 100%);color:var(--color-text-primary);cursor:pointer;font-size:12px;font-weight:700;letter-spacing:.01em;line-height:1;text-decoration:none;box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 1px 3px rgba(26,26,24,.08);transition:transform .14s ease,box-shadow .14s ease,background .14s ease,border-color .14s ease,color .14s ease;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn:hover{background:linear-gradient(180deg,#ffffff 0%,#efeae3 100%);border-color:#c8b7aa;box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 6px 16px rgba(26,26,24,.09)}
+.btn:active{transform:translateY(1px) scale(.99);box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 2px 6px rgba(26,26,24,.12)}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(139,26,26,.18),0 1px 0 rgba(255,255,255,.85) inset,0 6px 16px rgba(26,26,24,.09);border-color:var(--brand)}
+.btn[disabled]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-primary{background:linear-gradient(180deg,#9e2323 0%,#8B1A1A 55%,#731616 100%);color:#fff;border-color:#751818;box-shadow:0 1px 0 rgba(255,255,255,.12) inset,0 8px 18px rgba(139,26,26,.22)}
+.btn-primary:hover{background:linear-gradient(180deg,#ae2a2a 0%,#942020 55%,#7b1919 100%);border-color:#661414;box-shadow:0 1px 0 rgba(255,255,255,.14) inset,0 10px 22px rgba(139,26,26,.26)}
+.btn-danger{background:linear-gradient(180deg,#fff7f6 0%,#fdecea 100%);color:var(--color-text-danger);border-color:#e6b5ae;box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 4px 12px rgba(155,35,32,.08)}
+.btn-danger:hover{background:linear-gradient(180deg,#fffafa 0%,#fbded9 100%);border-color:#d79d95}
+.btn-sm{min-height:34px;padding:7px 10px;font-size:11px;border-radius:10px}
+.btn-icon{min-width:40px;padding:9px;font-size:13px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg,12px);padding:14px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md,8px);padding:12px}
+.metric-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.metric-value{font-size:20px;font-weight:500}
+.metric-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:2px}
+.metric.success .metric-value{color:var(--color-text-success)}
+.metric.warn .metric-value{color:var(--color-text-warning)}
+.metric.danger .metric-value{color:var(--color-text-danger)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:7px 8px;font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap}
+td{padding:7px 8px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--color-background-secondary)}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500}
+.badge-success{background:var(--color-background-success);color:var(--color-text-success)}
+.badge-warning{background:var(--color-background-warning);color:var(--color-text-warning)}
+.badge-danger{background:var(--color-background-danger);color:var(--color-text-danger)}
+.badge-info{background:var(--color-background-info);color:var(--color-text-info)}
+.badge-gray{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+.badge-brand{background:var(--brand-bg);color:var(--brand)}
+.modal-wrap{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;z-index:200;padding:30px 16px;overflow-y:auto}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);width:100%;max-width:500px;padding:18px}
+.modal-title{font-size:14px;font-weight:500;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.modal-close{cursor:pointer;color:var(--color-text-secondary);font-size:16px;line-height:1}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:11px;color:var(--color-text-secondary);margin-bottom:3px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:6px 9px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.search-bar{width:100%;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;background:var(--color-background-secondary);color:var(--color-text-primary);margin-bottom:12px}
+.tab-bar{display:flex;gap:2px;margin-bottom:14px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);overflow-x:auto}
+.tab{padding:4px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);border:none;background:none;white-space:nowrap}
+.tab.active{background:var(--color-background-primary);color:var(--color-text-primary)}
+.alert{padding:8px 12px;border-radius:var(--border-radius-md);font-size:12px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px}
+.alert-warning{background:var(--color-background-warning);color:var(--color-text-warning)}
+.alert-danger{background:var(--color-background-danger);color:var(--color-text-danger)}
+.alert-info{background:var(--color-background-info);color:var(--color-text-info)}
+.alert-success{background:var(--color-background-success);color:var(--color-text-success)}
+.empty{text-align:center;padding:32px;color:var(--color-text-tertiary);font-size:12px}
+.progress-bar{height:5px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;border-radius:3px;background:var(--brand)}
+.progress-fill.warn{background:var(--color-text-warning)}
+.progress-fill.danger{background:var(--color-text-danger)}
+.section-hdr{font-size:12px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.map-placeholder{background:var(--color-background-secondary);border-radius:var(--border-radius-md);height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:0.5px dashed var(--color-border-secondary)}
+.map-placeholder .map-icon{font-size:28px}
+.map-placeholder p{font-size:12px;color:var(--color-text-secondary);text-align:center;max-width:240px;line-height:1.5}
+.map-placeholder .map-api-note{font-size:10px;color:var(--color-text-tertiary);margin-top:4px}
+.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.export-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;cursor:pointer;border:0.5px solid var(--color-border-tertiary);transition:all .12s}
+.export-card:hover{background:var(--color-background-primary);border-color:var(--color-border-secondary)}
+.export-card .ec-icon{font-size:20px;margin-bottom:6px}
+.export-card .ec-title{font-size:12px;font-weight:500;margin-bottom:2px}
+.export-card .ec-sub{font-size:10px;color:var(--color-text-secondary)}
+.doc-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;border:0.5px solid var(--color-border-tertiary)}
+.doc-card .dc-title{font-size:12px;font-weight:500;margin-bottom:4px}
+.doc-card .dc-sub{font-size:10px;color:var(--color-text-secondary);margin-bottom:10px;line-height:1.4}
+.doc-shell{display:flex;flex-direction:column;gap:14px}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.doc-item{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;display:flex;flex-direction:column;gap:10px}
+.doc-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.doc-item-title{font-size:13px;font-weight:600}
+.doc-item-sub{font-size:11px;color:var(--color-text-secondary);line-height:1.4}
+.doc-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.doc-meta-block{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px}
+.doc-meta-label{font-size:10px;color:var(--color-text-tertiary);margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em}
+.doc-meta-value{font-size:12px;font-weight:500}
+.doc-actions{display:flex;gap:8px;flex-wrap:wrap}
+.doc-actions .btn{flex:1}
+.pdf-hub{display:grid;gap:16px}
+.pdf-hero{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px;border-radius:24px;background:radial-gradient(circle at top left,rgba(212,175,55,.22),transparent 42%),linear-gradient(145deg,#fffefb 0%,#f3f1ec 100%);border:1px solid rgba(212,175,55,.18);box-shadow:0 16px 40px rgba(32,26,12,.08)}
+.pdf-hero-copy{display:grid;gap:8px;max-width:620px}
+.pdf-kicker{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#8c6a00}
+.pdf-hero h2{font-size:26px;line-height:1.1;font-weight:800;color:#1f241f}
+.pdf-hero p{font-size:13px;line-height:1.6;color:var(--color-text-secondary)}
+.pdf-hero-stats{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:10px;min-width:min(100%,280px)}
+.pdf-stat{padding:14px;border-radius:18px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.74);backdrop-filter:blur(18px)}
+.pdf-stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);margin-bottom:4px}
+.pdf-stat-value{font-size:22px;font-weight:800;color:#2d5a27}
+.pdf-stat-note{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.pdf-stage{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr);gap:16px;align-items:start}
+.pdf-panel{background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(248,247,243,.98) 100%);border:1px solid rgba(215,209,198,.65);border-radius:26px;box-shadow:0 18px 44px rgba(19,20,18,.07)}
+.pdf-form-panel{padding:18px;display:grid;gap:14px}
+.pdf-card{padding:18px;border-radius:22px;background:rgba(255,255,255,.78);border:1px solid rgba(236,233,226,.92);box-shadow:0 12px 26px rgba(20,20,18,.05);display:grid;gap:14px}
+.pdf-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.pdf-card-head h3{font-size:18px;font-weight:800;color:#1f241f}
+.pdf-card-head p{font-size:12px;line-height:1.55;color:var(--color-text-secondary);margin-top:4px}
+.pdf-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.pdf-icon.gold{background:rgba(212,175,55,.18);color:#8c6a00}
+.pdf-icon.green{background:rgba(45,90,39,.14);color:#2d5a27}
+.pdf-icon.blue{background:rgba(37,99,235,.12);color:#1d4ed8}
+.pdf-input-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pdf-input-grid.triple{grid-template-columns:1.3fr .7fr .9fr}
+.pdf-field{display:grid;gap:6px}
+.pdf-field.full{grid-column:1/-1}
+.pdf-field label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary)}
+.pdf-field input,.pdf-field select,.pdf-field textarea{width:100%;padding:11px 12px;border-radius:14px;border:1px solid rgba(216,210,200,.85);background:#f4f5f3;color:var(--color-text-primary);font:inherit;transition:border-color .14s ease,box-shadow .14s ease,background .14s ease}
+.pdf-field input:focus,.pdf-field select:focus,.pdf-field textarea:focus{outline:none;border-color:rgba(212,175,55,.8);box-shadow:0 0 0 3px rgba(212,175,55,.16);background:#fff}
+.pdf-field textarea{min-height:96px;resize:vertical}
+.pdf-inline-note{font-size:11px;line-height:1.5;color:var(--color-text-secondary)}
+.pdf-segment{display:flex;gap:8px;flex-wrap:wrap}
+.pdf-switch{border:none;background:#ece9e1;color:var(--color-text-secondary);padding:9px 12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:background .14s ease,color .14s ease,transform .14s ease,box-shadow .14s ease}
+.pdf-switch:hover{transform:translateY(-1px);box-shadow:0 10px 20px rgba(29,33,28,.08)}
+.pdf-switch.active{background:#2d5a27;color:#fff;box-shadow:0 12px 24px rgba(45,90,39,.2)}
+.pdf-record-list{display:grid;gap:10px}
+.pdf-record{border:none;text-align:left;padding:14px;border-radius:18px;background:#faf9f6;border:1px solid rgba(228,223,213,.95);cursor:pointer;display:grid;gap:10px;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease,background .14s ease}
+.pdf-record:hover{transform:translateY(-1px);border-color:rgba(212,175,55,.42);box-shadow:0 10px 24px rgba(30,34,29,.07)}
+.pdf-record.active{background:linear-gradient(180deg,#fffaf0 0%,#fff 100%);border-color:rgba(212,175,55,.72);box-shadow:0 14px 30px rgba(212,175,55,.14)}
+.pdf-record-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pdf-record-title{font-size:14px;font-weight:800;color:#1f241f}
+.pdf-record-sub{font-size:11px;line-height:1.45;color:var(--color-text-secondary);margin-top:3px}
+.pdf-record-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pdf-record-metric{padding:9px 10px;border-radius:12px;background:#f2f2ef}
+.pdf-record-metric strong{display:block;font-size:13px;color:#1f241f}
+.pdf-record-metric span{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--color-text-tertiary);margin-top:2px}
+.pdf-list-tools{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end}
+.pdf-list-count{font-size:11px;color:var(--color-text-secondary);font-weight:700;white-space:nowrap}
+.sr-product-stack{display:grid;gap:8px}
+.sr-product-row{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:8px;align-items:center}
+.sr-product-row .btn{min-height:38px}
+.pdf-actions-row{display:flex;gap:10px;flex-wrap:wrap}
+.pdf-actions-row .btn{flex:1}
+.pdf-upload{border:1.5px dashed rgba(163,163,157,.8);background:linear-gradient(180deg,rgba(245,247,246,.92) 0%,rgba(251,251,249,.96) 100%);min-height:180px;place-items:center;text-align:center}
+.pdf-upload input{display:none}
+.pdf-upload-label{display:grid;gap:10px;justify-items:center;cursor:pointer}
+.pdf-upload-icon{width:56px;height:56px;border-radius:18px;background:#fff;color:#2d5a27;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 10px 24px rgba(27,37,30,.08)}
+.pdf-upload-copy{display:grid;gap:4px}
+.pdf-upload-status{width:100%;font-size:11px;line-height:1.5;color:var(--color-text-secondary)}
+.pdf-upload-status.error{color:var(--color-text-danger)}
+.pdf-upload-status.success{color:var(--color-text-success)}
+.pdf-attachment-list{display:grid;gap:8px;width:100%;margin-top:6px}
+.pdf-attachment-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.92);border:1px solid rgba(227,223,214,.95);text-align:left}
+.pdf-attachment-meta{display:grid;gap:3px;min-width:0}
+.pdf-attachment-name{font-size:12px;font-weight:700;color:#1f241f;word-break:break-word}
+.pdf-attachment-sub{font-size:10px;color:var(--color-text-tertiary)}
+.pdf-attachment-link{font-size:11px;font-weight:700;color:#2d5a27;text-decoration:none;white-space:nowrap}
+.pdf-attachment-link:hover{text-decoration:underline}
+.pdf-preview-panel{padding:16px;position:sticky;top:0;display:grid;gap:12px}
+.pdf-window{overflow:hidden;border-radius:24px;background:linear-gradient(180deg,#ffffff 0%,#f3f4f1 100%);border:1px solid rgba(227,223,214,.95);box-shadow:0 18px 36px rgba(23,24,22,.08)}
+.pdf-window-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#eceee8;border-bottom:1px solid rgba(230,229,224,.95)}
+.pdf-window-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#475047}
+.pdf-window-lights{display:flex;gap:6px}
+.pdf-window-lights span{width:10px;height:10px;border-radius:50%;display:block}
+.pdf-window-lights span:nth-child(1){background:#f87171}
+.pdf-window-lights span:nth-child(2){background:#fbbf24}
+.pdf-window-lights span:nth-child(3){background:#4ade80}
+.pdf-sheet{position:relative;padding:26px;background:#fff;min-height:720px}
+.pdf-watermark{position:absolute;inset:auto 24px 150px auto;font-size:140px;line-height:1;color:rgba(45,90,39,.04);font-weight:900;pointer-events:none}
+.pdf-doc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:4px solid #2d5a27;margin-bottom:24px}
+.pdf-brand{display:flex;align-items:center;gap:10px}
+.pdf-brand-badge{width:42px;height:42px;border-radius:14px;background:#d4af37;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.pdf-brand h4{font-size:22px;font-weight:900;letter-spacing:.04em;color:#2d5a27}
+.pdf-brand p,.pdf-doc-meta,.pdf-doc-footer{font-size:10px;line-height:1.5;color:#66706a}
+.pdf-doc-status{display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:999px;background:#2d5a27;color:#fff;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.pdf-doc-title{font-size:22px;font-weight:900;letter-spacing:.02em;color:#202420;text-align:center;text-decoration:underline;text-decoration-color:#d4af37;text-underline-offset:8px;margin-bottom:20px}
+.pdf-copy{display:grid;gap:12px;position:relative;z-index:1}
+.pdf-copy p{font-size:13px;line-height:1.7;color:#344038}
+.pdf-highlight{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-left:4px solid #d4af37;background:#f7f8f3;border-radius:0 14px 14px 0}
+.pdf-highlight-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#66706a}
+.pdf-highlight-value{font-size:28px;font-weight:900;color:#2d5a27}
+.pdf-data-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pdf-data-card{padding:12px 14px;border-radius:14px;background:#f5f6f2;border:1px solid rgba(235,235,230,.95)}
+.pdf-data-card span{display:block;font-size:10px;color:#7a7f77;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.pdf-data-card strong{display:block;font-size:15px;color:#1f241f}
+.pdf-signoff{padding-top:24px}
+.pdf-sign-line{width:132px;height:1px;background:#cfd3cf;margin-bottom:10px}
+.pdf-sheet-footer{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding-top:20px;margin-top:24px;border-top:1px solid #eff1ed}
+.pdf-qr{display:flex;align-items:center;gap:12px;color:#98a09b;font-size:9px;line-height:1.45}
+.pdf-qr-box{width:50px;height:50px;border-radius:10px;background:linear-gradient(135deg,#2d5a27 0%,#d4af37 100%);position:relative;overflow:hidden}
+.pdf-qr-box::before,.pdf-qr-box::after{content:'';position:absolute;border-radius:6px;background:rgba(255,255,255,.92)}
+.pdf-qr-box::before{inset:8px 22px 22px 8px}
+.pdf-qr-box::after{inset:24px 8px 8px 24px}
+.pdf-toolbar{display:flex;gap:10px;padding:14px 16px;border-top:1px solid rgba(236,237,232,.98);background:#fff}
+.pdf-toolbar .btn{flex:1}
+.pdf-insight{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:linear-gradient(180deg,rgba(232,245,237,.95) 0%,rgba(255,255,255,.96) 100%);border:1px solid rgba(189,220,198,.8)}
+.pdf-insight-icon{width:44px;height:44px;border-radius:14px;background:#ddf3e5;color:#1d6b3a;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pdf-insight strong{display:block;font-size:13px}
+.pdf-insight span{display:block;font-size:11px;line-height:1.5;color:var(--color-text-secondary);margin-top:3px}
+.table-scroll{overflow-x:auto}
+.mobile-stack{display:flex;flex-direction:column;gap:10px}
+.mobile-accordion{border:0.5px solid var(--color-border-tertiary);border-radius:14px;background:var(--color-background-primary);overflow:hidden}
+.mobile-accordion summary{list-style:none;cursor:pointer;padding:14px}
+.mobile-accordion summary::-webkit-details-marker{display:none}
+.mobile-accordion-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.mobile-accordion-title{font-size:13px;font-weight:600}
+.mobile-accordion-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px;line-height:1.35}
+.mobile-accordion-hint{font-size:10px;color:var(--color-text-tertiary);white-space:nowrap}
+.mobile-chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.mobile-chip{padding:4px 8px;border-radius:999px;background:var(--color-background-secondary);font-size:10px;font-weight:600;color:var(--color-text-secondary)}
+.mobile-chip.success{background:var(--color-background-success);color:var(--color-text-success)}
+.mobile-chip.warn{background:var(--color-background-warning);color:var(--color-text-warning)}
+.mobile-chip.danger{background:var(--color-background-danger);color:var(--color-text-danger)}
+.mobile-accordion-body{padding:0 14px 14px;display:grid;gap:8px}
+.mobile-info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mobile-info-card{padding:10px;border-radius:10px;background:var(--color-background-secondary)}
+.mobile-info-label{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.mobile-info-value{font-size:12px;font-weight:600}
+.sidebar-backdrop{display:none}
+.bottom-nav{display:none}
+.sm-pin{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);margin-bottom:6px;font-size:12px}
+.sm-pin-dot{width:10px;height:10px;border-radius:50%;background:var(--brand);flex-shrink:0}
+.sm-pin-dot.inactive{background:var(--color-text-tertiary)}
+.notification-dot{width:6px;height:6px;border-radius:50%;background:var(--color-text-danger);display:inline-block;margin-left:4px}
+.app-wrap{position:relative;min-height:100vh;overflow:hidden}
+.char-count{font-size:10px;color:var(--color-text-tertiary);text-align:right;margin-top:2px}
+@media (max-width: 820px){
+  body{font-size:14px}
+  .app-wrap,.app{min-height:100dvh;overflow:visible}
+  .app{display:block}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:min(82vw,320px);z-index:220;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);transform:translateX(-100%);transition:transform .24s ease;overflow-y:auto}
+  .app-wrap.menu-open .sidebar{transform:translateX(0)}
+  .sb-brand{position:sticky;top:0;display:block;min-width:0;background:var(--color-background-primary);border-right:none;z-index:1}
+  .nav-sec{display:block;padding:8px 0;min-width:0}
+  .nav-lbl{padding:4px 14px}
+  .nav-item{border-left:none;border-radius:10px;padding:10px 14px;margin:0 8px}
+  .nav-item.active{border-left-color:transparent;background:var(--brand-bg)}
+  .sidebar-backdrop{position:fixed;inset:0;background:rgba(18,18,18,.42);z-index:210;display:block;opacity:0;pointer-events:none;transition:opacity .2s ease}
+  .app-wrap.menu-open .sidebar-backdrop{opacity:1;pointer-events:auto}
+  .main{overflow:visible}
+  .topbar{padding:10px 12px;gap:8px}
+  .topbar-right{margin-left:auto;max-width:55%;justify-content:flex-end}
+  .mobile-nav-toggle{display:inline-flex;align-items:center;justify-content:center}
+  .content{padding:12px 12px 92px}
+  .offline-banner{padding:10px 12px}
+  .two-col,.form-row,.export-grid,.doc-grid,.doc-meta,.pdf-stage,.pdf-input-grid,.pdf-record-metrics,.pdf-data-grid{grid-template-columns:1fr}
+  .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .table-scroll table{min-width:640px}
+  .modal-wrap{padding:12px}
+  .modal{padding:14px;max-width:100%}
+  .form-actions,.doc-actions{flex-direction:column}
+  .doc-actions .btn,.form-actions .btn{width:100%}
+  .pdf-hero{padding:18px;grid-template-columns:1fr}
+  .pdf-hero,.pdf-card-head,.pdf-doc-head,.pdf-sheet-footer,.pdf-toolbar{flex-direction:column;align-items:flex-start}
+  .pdf-hero-stats{grid-template-columns:1fr 1fr;width:100%}
+  .pdf-preview-panel{position:static}
+  .pdf-sheet{min-height:auto;padding:20px}
+  .form-group input,.form-group select,.form-group textarea{min-height:46px;font-size:16px}
+  .bottom-nav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:10px;right:10px;bottom:10px;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border:0.5px solid var(--color-border-tertiary);border-radius:18px;padding:8px;gap:6px;z-index:230;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+  .bottom-nav-item{border:none;background:transparent;border-radius:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--color-text-secondary);cursor:pointer}
+  .bottom-nav-item.active{background:var(--brand-bg);color:var(--brand);font-weight:700}
+  .bottom-nav-item span:first-child{font-size:16px;line-height:1}
+}
+@media (max-width: 520px){
+  .card-grid{grid-template-columns:1fr}
+  .metric-value{font-size:18px}
+  .section-hdr{align-items:flex-start;gap:8px;flex-direction:column}
+  .topbar-right{max-width:none;width:auto}
+  .status-chip{padding:4px 8px;font-size:10px}
+  .mobile-info-grid{grid-template-columns:1fr}
+  .pdf-hero h2{font-size:22px}
+  .pdf-highlight-value{font-size:22px}
+  .pdf-record-metrics,.pdf-hero-stats{grid-template-columns:1fr}
+  .pdf-toolbar{padding:12px}
+  .pdf-list-tools,.sr-product-row{grid-template-columns:1fr}
+}
+</style>
+
+<h2 class="sr-only">Tsion Parboiled Brown Rice — Full ERP System v2 with PDF, Maps & Export</h2>
+<div class="app-wrap" id="appWrap">
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<div class="app" id="app">
+
+<div class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo">TR</div>
+    <div class="sb-title">Tsion Rice ERP</div>
+    <div class="sb-sub">v2 · Full Stack</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Overview</div>
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">◈</span>Dashboard</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Operations</div>
+    <div class="nav-item" data-page="supermarkets"><span class="nav-icon">🏬</span>Supermarkets</div>
+    <div class="nav-item" data-page="maps"><span class="nav-icon">📍</span>Maps View</div>
+    <div class="nav-item" data-page="inventory"><span class="nav-icon">📦</span>Inventory</div>
+    <div class="nav-item" data-page="deliveries"><span class="nav-icon">🚚</span>Deliveries</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Finance</div>
+    <div class="nav-item" data-page="receivables"><span class="nav-icon">💰</span>Receivables</div>
+    <div class="nav-item" data-page="payments"><span class="nav-icon">✓</span>Payments</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Documents</div>
+    <div class="nav-item" data-page="documents"><span class="nav-icon">📄</span>Generate PDFs</div>
+    <div class="nav-item" data-page="export"><span class="nav-icon">📊</span>Export Data</div>
+  </div>
+  <div class="nav-sec">
+    <div class="nav-lbl">Reports</div>
+    <div class="nav-item" data-page="reports"><span class="nav-icon">📈</span>Analytics</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open menu">☰</button>
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <div class="status-chip" id="statusChip">Live</div>
+      <div id="topActions">
+        <span style="font-size:10px;color:var(--color-text-tertiary)">ETB 85/KG</span>
+      </div>
+    </div>
+  </div>
+  <div class="offline-banner" id="offlineBanner" hidden>Offline mode: showing cached data. New submissions require connection.</div>
+  <div class="content" id="pageContent"></div>
+</div>
+
+</div>
+<div class="bottom-nav" id="bottomNav">
+  <button class="bottom-nav-item active" data-page="dashboard"><span>◈</span><span>Home</span></button>
+  <button class="bottom-nav-item" data-page="deliveries"><span>🚚</span><span>Deliveries</span></button>
+  <button class="bottom-nav-item" data-page="inventory"><span>📦</span><span>Stock</span></button>
+  <button class="bottom-nav-item" data-page="receivables"><span>💰</span><span>Credit</span></button>
+  <button class="bottom-nav-item" data-page="documents"><span>📄</span><span>Docs</span></button>
+</div>
+<div id="modalLayer"></div>
+</div>
+
+<script>
+const DEFAULT_COMPANY={
+  name:'Tsion Parboiled Brown Rice',
+  phone:'+251 94 413 5444',
+  address:'Addis Ababa, Ethiopia',
+  tin:'',
+  tagline:'100% Natural · Healthy · Gluten Free · Made in Ethiopia'
+};
+
+const DB={
+  get(k){try{return JSON.parse(localStorage.getItem('tsion2_'+k))||null}catch{return null}},
+  set(k,v){localStorage.setItem('tsion2_'+k,JSON.stringify(v))},
+  init(){
+    if(!this.get('sms'))this.set('sms',[
+      {id:'SM001',code:'SM001',name:'Shoa Supermarket',branch:'Main Branch',tin:'R00123456',contact:'Abebe Girma',phone:'+251911234567',email:'shoa@example.com',address:'Bole Road, Addis Ababa',lat:9.0227,lng:38.7882,creditLimit:50000,outstanding:12500,status:'Active'},
+      {id:'SM002',code:'SM002',name:'Fantu Supermarket',branch:'Piazza Branch',tin:'R00234567',contact:'Tigist Haile',phone:'+251922345678',email:'fantu@example.com',address:'Piazza, Addis Ababa',lat:9.0400,lng:38.7500,creditLimit:30000,outstanding:28000,status:'Active'},
+      {id:'SM003',code:'SM003',name:'Bambis Supermarket',branch:'Gerji Branch',tin:'R00345678',contact:'Dawit Bekele',phone:'+251933456789',email:'bambis@example.com',address:'Gerji, Addis Ababa',lat:9.0150,lng:38.8100,creditLimit:40000,outstanding:5000,status:'Active'},
+      {id:'SM004',code:'SM004',name:'Kera Market',branch:'Kera',tin:'R00456789',contact:'Meron Tadesse',phone:'+251944567890',email:'kera@example.com',address:'Kera, Addis Ababa',lat:8.9900,lng:38.7600,creditLimit:20000,outstanding:19500,status:'Inactive'},
+    ]);
+    if(!this.get('inv'))this.set('inv',{stock:1200,received:5000,txns:[
+      {id:'INV001',type:'stock_in',qty:2000,date:'2024-10-01',note:'Initial stock'},
+      {id:'INV002',type:'stock_in',qty:1500,date:'2024-11-15',note:'Restock batch 2'},
+      {id:'INV003',type:'stock_in',qty:1500,date:'2025-01-10',note:'Restock batch 3'},
+    ]});
+    if(!this.get('dels'))this.set('dels',[
+      {id:'d1',fs:'FS-0001',smId:'SM001',smName:'Shoa Supermarket',qty:200,sold:180,ret:0,date:'2025-03-01',status:'Delivered'},
+      {id:'d2',fs:'FS-0002',smId:'SM002',smName:'Fantu Supermarket',qty:150,sold:100,ret:0,date:'2025-03-05',status:'Delivered'},
+      {id:'d3',fs:'FS-0003',smId:'SM003',smName:'Bambis Supermarket',qty:100,sold:95,ret:5,date:'2025-03-10',status:'Delivered'},
+      {id:'d4',fs:'FS-0004',smId:'SM001',smName:'Shoa Supermarket',qty:300,sold:250,ret:0,date:'2025-04-01',status:'Delivered'},
+      {id:'d5',fs:'FS-0005',smId:'SM002',smName:'Fantu Supermarket',qty:200,sold:140,ret:0,date:'2025-04-10',status:'Delivered'},
+      {id:'d6',fs:'FS-0006',smId:'SM004',smName:'Kera Market',qty:100,sold:60,ret:0,date:'2025-02-01',status:'Delivered'},
+    ]);
+    if(!this.get('pays'))this.set('pays',[
+      {id:'p1',ref:'PAY-001',smId:'SM001',smName:'Shoa Supermarket',amount:10000,date:'2025-03-15',method:'Bank Transfer'},
+      {id:'p2',ref:'PAY-002',smId:'SM002',smName:'Fantu Supermarket',amount:5000,date:'2025-03-20',method:'Cash'},
+      {id:'p3',ref:'PAY-003',smId:'SM003',smName:'Bambis Supermarket',amount:8000,date:'2025-04-01',method:'Bank Transfer'},
+    ]);
+    if(!this.get('price'))this.set('price',{perKg:85,history:[{p:85,date:'2024-01-01'}]});
+    if(!this.get('company'))this.set('company',DEFAULT_COMPANY);
+  }
+};
+DB.init();
+
+const API_BASE=window.location.origin;
+const LIVE_STATE={syncPromise:null,lastSync:0};
+
+function apiUrl(path){return API_BASE+path;}
+function toNum(v){return Number(v||0);}
+
+async function apiFetch(path,options={}){
+  const res=await fetch(apiUrl(path),options);
+  if(!res.ok){
+    let msg=`Request failed (${res.status})`;
+    try{
+      const body=await res.json();
+      msg=body.error||body.message||msg;
+    }catch{}
+    throw new Error(msg);
+  }
+  if(res.status===204)return null;
+  return res.json();
+}
+
+function normalizeSupermarket(sm){
+  return {
+    id:sm.id,
+    code:sm.code,
+    name:sm.name,
+    branch:sm.branch||'',
+    tin:sm.tin||'',
+    contact:sm.contact_name||'',
+    phone:sm.phone||'',
+    email:sm.email||'',
+    address:sm.address||'',
+    lat:sm.lat===null?null:Number(sm.lat),
+    lng:sm.lng===null?null:Number(sm.lng),
+    creditLimit:toNum(sm.credit_limit),
+    outstanding:toNum(sm.outstanding),
+    status:sm.status||'Active',
+    consignmentStock:toNum(sm.consignment_stock),
+    createdAt:sm.created_at||null
+  };
+}
+
+function sortSupermarketsNewest(items){
+  return (items||[]).slice().sort((left,right)=>{
+    const rightTs=Date.parse(right.createdAt||0)||0;
+    const leftTs=Date.parse(left.createdAt||0)||0;
+    if(rightTs!==leftTs)return rightTs-leftTs;
+    return String(left.name||'').localeCompare(String(right.name||''));
+  });
+}
+
+function sortByNewest(items, primaryKey, fallbackKey){
+  return (items||[]).slice().sort((left,right)=>{
+    const rightPrimary=Date.parse(right[primaryKey]||0)||0;
+    const leftPrimary=Date.parse(left[primaryKey]||0)||0;
+    if(rightPrimary!==leftPrimary)return rightPrimary-leftPrimary;
+    const rightFallback=Date.parse(right[fallbackKey]||0)||0;
+    const leftFallback=Date.parse(left[fallbackKey]||0)||0;
+    return rightFallback-leftFallback;
+  });
+}
+
+function normalizeDelivery(d){
+  return {
+    id:d.id,
+    fs:d.fs_number,
+    smId:d.supermarket_id,
+    smName:d.supermarket_name,
+    qty:toNum(d.qty_delivered),
+    sold:toNum(d.qty_sold),
+    ret:toNum(d.qty_returned),
+    date:d.delivery_date,
+    status:d.status||'Delivered',
+    createdAt:d.created_at||null
+  };
+}
+
+function normalizePayment(p){
+  return {
+    id:p.id,
+    ref:p.ref,
+    smId:p.supermarket_id,
+    smName:p.supermarket_name,
+    amount:toNum(p.amount),
+    date:p.payment_date,
+    method:p.method||'Bank Transfer',
+    createdAt:p.created_at||null
+  };
+}
+
+function normalizeInventory(stock,txns){
+  return {
+    stock:toNum(stock.current_qty),
+    received:toNum(stock.total_received),
+    distributed:toNum(stock.total_distributed),
+    returned:toNum(stock.total_returned),
+    atSupermarkets:toNum(stock.at_supermarkets),
+    txns:(txns||[]).map(t=>(
+      {
+        id:t.ref||t.id,
+        type:t.type,
+        qty:toNum(t.qty),
+        date:t.transaction_date,
+        note:t.note||'',
+        createdAt:t.created_at||null
+      }
+    ))
+  };
+}
+
+function normalizePrice(price){
+  return {perKg:toNum(price?.price_per_kg||85),history:DB.get('price')?.history||[]};
+}
+
+function normalizeCompany(company){
+  return {
+    name:company?.name||DEFAULT_COMPANY.name,
+    phone:company?.phone||DEFAULT_COMPANY.phone,
+    address:company?.address||DEFAULT_COMPANY.address,
+    tin:company?.tin||DEFAULT_COMPANY.tin,
+    tagline:company?.tagline||DEFAULT_COMPANY.tagline
+  };
+}
+
+async function syncLiveData(force=false){
+  if(LIVE_STATE.syncPromise&&!force)return LIVE_STATE.syncPromise;
+  if(!force&&Date.now()-LIVE_STATE.lastSync<10000)return;
+  LIVE_STATE.syncPromise=(async()=>{
+    const [sms,dels,pays,inv,price,txns,company]=await Promise.all([
+      apiFetch('/api/supermarkets'),
+      apiFetch('/api/deliveries'),
+      apiFetch('/api/payments'),
+      apiFetch('/api/inventory/summary'),
+      apiFetch('/api/inventory/price'),
+      apiFetch('/api/inventory/transactions'),
+      apiFetch('/api/meta/company').catch(()=>DB.get('company')||DEFAULT_COMPANY)
+    ]);
+    DB.set('sms',sortSupermarketsNewest(sms.map(normalizeSupermarket)));
+    DB.set('dels',sortByNewest(dels.map(normalizeDelivery),'date','createdAt'));
+    DB.set('pays',sortByNewest(pays.map(normalizePayment),'date','createdAt'));
+    const normalizedInventory=normalizeInventory(inv,txns);
+    normalizedInventory.txns=sortByNewest(normalizedInventory.txns,'date','createdAt');
+    DB.set('inv',normalizedInventory);
+    DB.set('price',normalizePrice(price));
+    DB.set('company',normalizeCompany(company));
+    LIVE_STATE.lastSync=Date.now();
+  })().finally(()=>{LIVE_STATE.syncPromise=null;});
+  return LIVE_STATE.syncPromise;
+}
+
+const PAGES={};
+let curPage='dashboard';
+const PAGE_TITLES={dashboard:'Dashboard',supermarkets:'Supermarket Management',maps:'Supermarket Locations Map',inventory:'Warehouse & Inventory',deliveries:'Deliveries & Distribution',receivables:'Credit & Receivables',payments:'Payment Records',documents:'Document Generation',export:'Export Data',reports:'Analytics & Reports'};
+
+function fmtN(n){return Number(n||0).toLocaleString();}
+function fmtE(n){return 'ETB '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});}
+function today(){return new Date().toISOString().slice(0,10);}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
+function fmtBytes(bytes){
+  const size=Number(bytes||0);
+  if(size<1024)return size+' B';
+  if(size<1024*1024)return (size/1024).toFixed(1)+' KB';
+  return (size/(1024*1024)).toFixed(1)+' MB';
+}
+function uid(){return 'd'+Date.now();}
+function escapeHtml(value){
+  return String(value??'').replace(/[&<>"']/g,char=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[char]));
+}
+function isPhoneUI(){return window.matchMedia('(max-width: 820px)').matches;}
+function pulseSuccess(){
+  if(navigator.vibrate) navigator.vibrate(18);
+  document.getElementById('appWrap')?.animate([
+    {transform:'translateY(0px)'},
+    {transform:'translateY(-2px)'},
+    {transform:'translateY(0px)'}
+  ],{duration:220,easing:'ease-out'});
+}
+function mobileChip(text,tone=''){
+  return `<span class="mobile-chip ${tone}">${text}</span>`;
+}
+function mobileInfoGrid(items){
+  return `<div class="mobile-info-grid">${items.map(([label,value])=>`<div class="mobile-info-card"><div class="mobile-info-label">${label}</div><div class="mobile-info-value">${value}</div></div>`).join('')}</div>`;
+}
+function mobileAccordion(title,subtitle,chipHtml,bodyHtml,actionsHtml=''){
+  return `<details class="mobile-accordion"><summary><div class="mobile-accordion-head"><div><div class="mobile-accordion-title">${title}</div><div class="mobile-accordion-sub">${subtitle||''}</div></div><span class="mobile-accordion-hint">Tap to expand</span></div>${chipHtml?`<div class="mobile-chip-row">${chipHtml}</div>`:''}</summary><div class="mobile-accordion-body">${bodyHtml}${actionsHtml?`<div class="doc-actions">${actionsHtml}</div>`:''}</div></details>`;
+}
+function setMenuOpen(open){document.getElementById('appWrap')?.classList.toggle('menu-open',open);}
+function updateActiveNav(page){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+  document.querySelectorAll('.bottom-nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
+}
+function updateConnectivityUI(){
+  const offline=!navigator.onLine;
+  const banner=document.getElementById('offlineBanner');
+  const chip=document.getElementById('statusChip');
+  if(banner) banner.hidden=!offline;
+  if(chip){
+    chip.textContent=offline?'Offline':'Live';
+    chip.classList.toggle('offline',offline);
+  }
+}
+
+async function nav(page){
+  curPage=page;
+  updateActiveNav(page);
+  setMenuOpen(false);
+  document.getElementById('pageTitle').textContent=PAGE_TITLES[page]||page;
+  document.getElementById('modalLayer').innerHTML='';
+  document.getElementById('pageContent').innerHTML='<div class="card">Loading...</div>';
+  try{
+    await syncLiveData();
+  }catch(err){
+    toast(err.message||'Failed to load live data','error');
+  }
+  document.getElementById('topActions').innerHTML='<span style="font-size:10px;color:var(--color-text-tertiary)">ETB '+(DB.get('price')||{perKg:85}).perKg+'/KG</span>';
+  PAGES[page]();
+}
+
+document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>nav(el.dataset.page)));
+document.querySelectorAll('.bottom-nav-item').forEach(el=>el.addEventListener('click',()=>nav(el.dataset.page)));
+document.getElementById('mobileNavToggle')?.addEventListener('click',()=>setMenuOpen(true));
+document.getElementById('sidebarBackdrop')?.addEventListener('click',()=>setMenuOpen(false));
+window.addEventListener('resize',()=>{ if(!isPhoneUI()) setMenuOpen(false); });
+window.addEventListener('online',()=>{updateConnectivityUI(); toast('Back online. Live sync restored.','success');});
+window.addEventListener('offline',()=>{updateConnectivityUI(); toast('Offline mode enabled. Using cached data.','info');});
+updateConnectivityUI();
+
+function modal(html){
+  const ml=document.getElementById('modalLayer');
+  ml.innerHTML='<div class="modal-wrap" id="mBg">'+html+'</div>';
+  document.getElementById('mBg').addEventListener('click',e=>{if(e.target.id==='mBg')closeModal();});
+}
+function closeModal(){document.getElementById('modalLayer').innerHTML='';}
+
+function toast(msg,type='success'){
+  const t=document.createElement('div');
+  t.style.cssText='position:absolute;bottom:16px;left:50%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;font-size:12px;z-index:300;white-space:nowrap;pointer-events:none';
+  t.style.background=type==='success'?'var(--color-background-success)':type==='error'?'var(--color-background-danger)':'var(--color-background-info)';
+  t.style.color=type==='success'?'var(--color-text-success)':type==='error'?'var(--color-text-danger)':'var(--color-text-info)';
+  t.style.border='0.5px solid';
+  t.textContent=msg;
+  document.getElementById('appWrap').appendChild(t);
+  t.animate([{opacity:0,transform:'translate(-50%,10px)'},{opacity:1,transform:'translate(-50%,0px)'}],{duration:180,easing:'ease-out'});
+  if(type==='success') pulseSuccess();
+  setTimeout(()=>t.remove(),2500);
+}
+
+PAGES.dashboard=function(){
+  const sms=DB.get('sms')||[];
+  const dels=DB.get('dels')||[];
+  const pays=DB.get('pays')||[];
+  const inv=DB.get('inv')||{stock:0};
+  const price=DB.get('price')||{perKg:85};
+  const recentDeliveries=(dels||[]).slice(0,5);
+  const totalRec=sms.reduce((s,m)=>s+(m.outstanding||0),0);
+  const totalSoldKg=dels.reduce((s,d)=>s+(d.sold||0),0);
+  const totalRev=totalSoldKg*price.perKg;
+  const totalPaid=pays.reduce((s,p)=>s+(p.amount||0),0);
+  const smStock={};dels.forEach(d=>{smStock[d.smId]=(smStock[d.smId]||0)+(d.qty-d.sold-d.ret);});
+  const atSMs=Object.values(smStock).reduce((s,v)=>s+v,0);
+  const over=sms.filter(s=>s.outstanding>s.creditLimit);
+  const near=sms.filter(s=>s.outstanding>s.creditLimit*.8&&s.outstanding<=s.creditLimit);
+  const pc=document.getElementById('pageContent');
+  pc.innerHTML=`
+  ${over.length?`<div class="alert alert-danger"><span>⚠</span><span>${over.map(s=>s.name).join(', ')} exceeded credit limit</span></div>`:''}
+  ${near.length?`<div class="alert alert-warning"><span>⚠</span><span>${near.map(s=>s.name).join(', ')} near credit limit</span></div>`:''}
+  ${inv.stock<200?`<div class="alert alert-warning"><span>⚠</span><span>Low warehouse stock: ${fmtN(inv.stock)} KG</span></div>`:''}
+  <div class="card-grid">
+    <div class="metric"><div class="metric-label">Warehouse stock</div><div class="metric-value">${fmtN(inv.stock)} KG</div><div class="metric-sub">Available</div></div>
+    <div class="metric"><div class="metric-label">At supermarkets</div><div class="metric-value">${fmtN(atSMs)} KG</div><div class="metric-sub">Consignment</div></div>
+    <div class="metric success"><div class="metric-label">Total revenue</div><div class="metric-value">${fmtE(totalRev)}</div><div class="metric-sub">${fmtN(totalSoldKg)} KG sold</div></div>
+    <div class="metric danger"><div class="metric-label">Receivables</div><div class="metric-value">${fmtE(totalRec)}</div><div class="metric-sub">${over.length} over limit</div></div>
+  </div>
+  <div class="two-col" style="margin-bottom:14px">
+    <div class="card">
+      <div class="section-hdr">Credit usage</div>
+      ${sms.map(sm=>{const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));const c=p>=100?'danger':p>=80?'warn':'';return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px"><span>${sm.name}</span><span style="color:var(--color-text-secondary)">${fmtE(sm.outstanding)}</span></div><div class="progress-bar"><div class="progress-fill ${c}" style="width:${p}%"></div></div></div>`;}).join('')}
+    </div>
+    <div class="card">
+      <div class="section-hdr">Financial summary
+        <button class="btn btn-sm" onclick="nav('export')">Export</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${[['Total revenue',fmtE(totalRev),'success'],['Payments collected',fmtE(totalPaid),'success'],['Outstanding',fmtE(totalRec),'danger'],['Collection rate',Math.round(totalRev>0?totalPaid/totalRev*100:0)+'%','']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)"><span style="color:var(--color-text-secondary)">${l}</span><span style="font-weight:500;color:${c?`var(--color-text-${c})`:''}">${v}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-hdr">Recent deliveries
+      <button class="btn btn-sm" onclick="nav('deliveries')">View all</button>
+    </div>
+    ${isPhoneUI()?`<div class="mobile-stack">${recentDeliveries.map(d=>mobileAccordion(
+      d.fs,
+      `${d.smName} · ${fmtDate(d.date)}`,
+      mobileChip(`${fmtN(d.qty)} KG`,`success`)+mobileChip(`Bal ${fmtN(d.qty-d.sold-d.ret)} KG`),
+      mobileInfoGrid([
+        ['Delivered',`${fmtN(d.qty)} KG`],
+        ['Sold',`${fmtN(d.sold)} KG`],
+        ['Balance',`${fmtN(d.qty-d.sold-d.ret)} KG`],
+        ['Date',fmtDate(d.date)]
+      ]),
+      `<button class="btn btn-sm" onclick="showDocMenu('${d.id}','${d.fs}')">Docs</button>`
+    )).join('')}</div>`:`<table><thead><tr><th>FS#</th><th>Supermarket</th><th>Qty</th><th>Sold</th><th>Balance</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>${recentDeliveries.map(d=>`<tr>
+      <td style="font-family:var(--font-mono,monospace);font-size:11px">${d.fs}</td>
+      <td>${d.smName}</td><td>${fmtN(d.qty)} KG</td>
+      <td><span class="badge badge-success">${fmtN(d.sold)} KG</span></td>
+      <td>${fmtN(d.qty-d.sold-d.ret)} KG</td><td>${fmtDate(d.date)}</td>
+      <td><button class="btn btn-sm" onclick="showDocMenu('${d.id}','${d.fs}')">📄 Docs</button></td>
+    </tr>`).join('')}</tbody></table>`}
+  </div>`;
+};
+
+window.showDocMenu=function(delId,fs){
+  modal(`<div class="modal">
+    <div class="modal-title">Documents — ${fs} <span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="doc-card">
+        <div class="dc-title">📋 Delivery Note</div>
+        <div class="dc-sub">Official record of goods delivered to supermarket. Includes FS#, quantities, signatures.</div>
+        <button class="btn btn-primary btn-sm" onclick="genPDF('delivery-note','${delId}','${fs}')">Generate PDF</button>
+      </div>
+      <div class="doc-card">
+        <div class="dc-title">🧾 Sales Receipt</div>
+        <div class="dc-sub">Sales and consignment summary including sold qty, balance, and outstanding amount.</div>
+        <button class="btn btn-primary btn-sm" onclick="genPDF('sales-receipt','${delId}','${fs}')">Generate PDF</button>
+      </div>
+    </div>
+    <div style="margin-top:10px" class="doc-card">
+      <div class="dc-title">📦 Delivery Order</div>
+      <div class="dc-sub">Pre-delivery authorization document for dispatch team. Includes driver, route, and product details.</div>
+      <button class="btn btn-primary btn-sm" onclick="genDeliveryOrder('${delId}')">Generate PDF</button>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary)">
+      <div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:8px;border-radius:6px">
+        <strong>Backend connected:</strong> PDFs are generated server-side via Node.js + PDFKit and downloaded automatically. Ensure backend is running on port 3001.
+      </div>
+    </div>
+  </div>`);
+};
+
+window.genPDF=function(type,id,fs){
+  toast(`Opening ${type} for ${fs}...`,'info');
+  window.open(apiUrl('/api/pdf/'+type+'/'+id),'_blank');
+  closeModal();
+};
+window.genDeliveryOrder=function(delId){
+  const dels=DB.get('dels')||[];
+  const d=dels.find(x=>x.id===delId);
+  if(!d) return;
+  const body={supermarket_id:d.smId,qty:d.qty,delivery_date:d.date,driver:'',notes:''};
+  toast('Generating delivery order...','info');
+  fetch(apiUrl('/api/pdf/delivery-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>{if(!r.ok)throw new Error();return r.blob();})
+    .then(b=>{const u=URL.createObjectURL(b);window.open(u,'_blank');})
+    .catch(()=>toast('Backend not running. Start with: npm run dev','error'));
+  closeModal();
+};
+
+PAGES.supermarkets=function(){
+  const pc=document.getElementById('pageContent');
+  const ta=document.getElementById('topActions');
+  ta.innerHTML=`<button class="btn btn-primary btn-sm" id="addSmBtn">+ Add supermarket</button>`;
+  function render(f=''){
+    const sms=(DB.get('sms')||[]).filter(s=>!f||s.name.toLowerCase().includes(f.toLowerCase())||s.branch.toLowerCase().includes(f.toLowerCase()));
+    pc.innerHTML=`
+    <input class="search-bar" id="smSearch" placeholder="Search by name or branch..." value="${f}">
+    <div class="card">
+    ${isPhoneUI()?`${sms.length?`<div class="mobile-stack">${sms.map(sm=>{
+      const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));
+      const tone=p>=100?'danger':p>=80?'warn':'success';
+      return mobileAccordion(
+        `${sm.code} · ${sm.name}`,
+        `${sm.branch || 'No branch'} · ${sm.contact || 'No contact'}`,
+        mobileChip(sm.status,sm.status==='Active'?'success':'')+mobileChip(`Stock ${fmtN(sm.consignmentStock||0)} KG`)+mobileChip(`Usage ${p}%`,tone),
+        mobileInfoGrid([
+          ['Phone',sm.phone||'—'],
+          ['Credit',fmtE(sm.creditLimit)],
+          ['Outstanding',fmtE(sm.outstanding||0)],
+          ['Address',sm.address||'—']
+        ]),
+        `<button class="btn btn-sm" onclick="editSM('${sm.id}')">Edit</button><button class="btn btn-sm" onclick="nav('maps')">Map</button><button class="btn btn-sm btn-danger" onclick="delSM('${sm.id}')">Delete</button>`
+      );
+    }).join('')}</div>`:`<div class="empty">No supermarkets found.</div>`}`:`<table><thead><tr><th>Code</th><th>Supermarket</th><th>Contact</th><th>Credit limit</th><th>Outstanding</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${sms.length?sms.map(sm=>{
+      const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));
+      const bc=p>=100?'badge-danger':p>=80?'badge-warning':'badge-success';
+      return`<tr>
+        <td style="font-family:var(--font-mono,monospace);font-size:10px">${sm.code}</td>
+        <td><div style="font-weight:500">${sm.name}</div><div style="font-size:10px;color:var(--color-text-secondary)">${sm.branch}</div></td>
+        <td><div>${sm.contact}</div><div style="font-size:10px;color:var(--color-text-secondary)">${sm.phone}</div></td>
+        <td>${fmtE(sm.creditLimit)}</td>
+        <td><span class="badge ${bc}">${fmtE(sm.outstanding||0)}</span></td>
+        <td>${fmtN(sm.consignmentStock||0)} KG</td>
+        <td><span class="badge ${sm.status==='Active'?'badge-success':'badge-gray'}">${sm.status}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="editSM('${sm.id}')">Edit</button>
+          <button class="btn btn-sm" onclick="nav('maps')" title="View on map" style="margin-left:3px">📍</button>
+          <button class="btn btn-sm btn-danger" onclick="delSM('${sm.id}')" style="margin-left:3px">✕</button>
+        </td>
+      </tr>`;}).join(''):`<tr><td colspan="8"><div class="empty">No supermarkets found.</div></td></tr>`}
+    </tbody></table>`}</div>`;
+    document.getElementById('smSearch').addEventListener('input',e=>render(e.target.value));
+  }
+  render();
+  document.getElementById('addSmBtn').addEventListener('click',()=>openSMForm());
+};
+
+window.editSM=function(id){const sm=(DB.get('sms')||[]).find(s=>s.id===id);if(sm)openSMForm(sm);};
+window.delSM=async function(id){
+  if(!confirm('Delete?'))return;
+  try{
+    await apiFetch('/api/supermarkets/'+id,{method:'DELETE'});
+    await syncLiveData(true);
+    toast('Supermarket deleted');
+    PAGES.supermarkets();
+  }catch(err){toast(err.message||'Delete failed','error');}
+};
+
+function openSMForm(sm=null){
+  modal(`<div class="modal">
+    <div class="modal-title">${sm?'Edit':'Add'} Supermarket <span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div class="form-row">
+      <div class="form-group"><label>Legal name *</label><input id="f_name" value="${sm?sm.name:''}"></div>
+      <div class="form-group"><label>Branch name</label><input id="f_branch" value="${sm?sm.branch:''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>TIN</label><input id="f_tin" value="${sm?sm.tin:''}"></div>
+      <div class="form-group"><label>Contact person</label><input id="f_contact" value="${sm?sm.contact:''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Phone</label><input id="f_phone" value="${sm?sm.phone:''}"></div>
+      <div class="form-group"><label>Email</label><input id="f_email" value="${sm?sm.email:''}"></div>
+    </div>
+    <div class="form-group"><label>Address</label><input id="f_address" value="${sm?sm.address:''}"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Latitude (for Maps)</label><input id="f_lat" type="number" step="0.0001" value="${sm?sm.lat||'':''}"></div>
+      <div class="form-group"><label>Longitude (for Maps)</label><input id="f_lng" type="number" step="0.0001" value="${sm?sm.lng||'':''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Credit limit (ETB)</label><input id="f_credit" type="number" value="${sm?sm.creditLimit:20000}"></div>
+      <div class="form-group"><label>Status</label><select id="f_status"><option ${!sm||sm.status==='Active'?'selected':''}>Active</option><option ${sm&&sm.status==='Inactive'?'selected':''}>Inactive</option></select></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSM('${sm?sm.id:''}')">Save</button>
+    </div>
+  </div>`);
+}
+
+window.saveSM=async function(id){
+  const body={
+    name:document.getElementById('f_name').value,
+    branch:document.getElementById('f_branch').value,
+    tin:document.getElementById('f_tin').value,
+    contact_name:document.getElementById('f_contact').value,
+    phone:document.getElementById('f_phone').value,
+    email:document.getElementById('f_email').value,
+    address:document.getElementById('f_address').value,
+    lat:parseFloat(document.getElementById('f_lat').value)||null,
+    lng:parseFloat(document.getElementById('f_lng').value)||null,
+    credit_limit:parseFloat(document.getElementById('f_credit').value)||20000,
+    status:document.getElementById('f_status').value
+  };
+  if(!body.name){toast('Name is required','error');return;}
+  try{
+    await apiFetch(id?'/api/supermarkets/'+id:'/api/supermarkets',{
+      method:id?'PUT':'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    await syncLiveData(true);
+    closeModal();
+    toast('Supermarket saved');
+    PAGES.supermarkets();
+  }catch(err){toast(err.message||'Save failed','error');}
+};
+
+PAGES.maps=function(){
+  const pc=document.getElementById('pageContent');
+  const sms=DB.get('sms')||[];
+  const withCoords=sms.filter(s=>s.lat&&s.lng);
+  const MAPS_KEY='YOUR_GOOGLE_MAPS_API_KEY';
+  const hasKey=MAPS_KEY!=='YOUR_GOOGLE_MAPS_API_KEY';
+
+  pc.innerHTML=`
+  <div class="alert alert-info" style="margin-bottom:14px">
+    <span>ℹ</span>
+    <span>Google Maps requires an API key. See setup guide below. Supermarket pins are ready — coordinates saved for all ${withCoords.length} locations.</span>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="map-placeholder" id="mapContainer">
+        <div class="map-icon">🗺️</div>
+        <p><strong>Map loads when API key is set</strong><br>All ${withCoords.length} supermarket locations are geocoded and ready to display.</p>
+        <p class="map-api-note">Edit MAPS_KEY in source or set REACT_APP_MAPS_KEY env variable</p>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="section-hdr">Supermarket locations</div>
+        ${sms.map(sm=>`
+          <div class="sm-pin">
+            <div class="sm-pin-dot ${sm.status!=='Active'?'inactive':''}"></div>
+            <div style="flex:1">
+              <div style="font-weight:500;font-size:12px">${sm.name}</div>
+              <div style="font-size:10px;color:var(--color-text-secondary)">${sm.address}</div>
+              ${sm.lat?`<div style="font-size:10px;color:var(--color-text-tertiary)">📍 ${sm.lat.toFixed(4)}, ${sm.lng.toFixed(4)}</div>`:
+              `<div style="font-size:10px;color:var(--color-text-warning)">⚠ No coordinates — edit to add</div>`}
+            </div>
+            <span class="badge ${sm.status==='Active'?'badge-success':'badge-gray'}">${sm.status}</span>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="section-hdr">Google Maps API Setup Guide</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:8px">
+      ${[
+        ['1','Go to Google Cloud Console','console.cloud.google.com'],
+        ['2','Create a project & enable billing','Free tier: $200/month credit'],
+        ['3','Enable APIs','Maps JS API + Places API + Geocoding API'],
+        ['4','Create API Key','Credentials → Create credentials → API key'],
+        ['5','Add to .env file','GOOGLE_MAPS_API_KEY=your_key_here'],
+        ['6','Restart backend','npm run dev'],
+      ].map(([n,t,s])=>`<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <div style="width:18px;height:18px;border-radius:50%;background:var(--brand);color:#fff;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0">${n}</div>
+          <div style="font-size:11px;font-weight:500">${t}</div>
+        </div>
+        <div style="font-size:10px;color:var(--color-text-secondary)">${s}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+};
+
+PAGES.inventory=function(){
+  const pc=document.getElementById('pageContent');
+  const ta=document.getElementById('topActions');
+  ta.innerHTML=`<button class="btn btn-primary btn-sm" id="addStockBtn">+ Stock in</button><button class="btn btn-sm" id="setPriceBtn" style="margin-left:6px">Set price</button>`;
+  const inv=DB.get('inv')||{stock:0,received:0,txns:[]};
+  const dels=DB.get('dels')||[];
+  const totalOut=dels.reduce((s,d)=>s+d.qty,0);
+  const totalRet=dels.reduce((s,d)=>s+(d.ret||0),0);
+  const atSMs=dels.reduce((s,d)=>s+(d.qty-d.sold-d.ret),0);
+  const price=DB.get('price')||{perKg:85};
+  pc.innerHTML=`
+  <div class="card-grid">
+    <div class="metric success"><div class="metric-label">Warehouse stock</div><div class="metric-value">${fmtN(inv.stock)} KG</div></div>
+    <div class="metric"><div class="metric-label">Total received</div><div class="metric-value">${fmtN(inv.received)} KG</div></div>
+    <div class="metric warn"><div class="metric-label">Distributed</div><div class="metric-value">${fmtN(totalOut)} KG</div></div>
+    <div class="metric"><div class="metric-label">At supermarkets</div><div class="metric-value">${fmtN(atSMs)} KG</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;font-size:12px">
+    <strong>Balance check:</strong> ${fmtN(inv.received)} received − ${fmtN(totalOut)} out + ${fmtN(totalRet)} returned = <strong>${fmtN(inv.received-totalOut+totalRet)} KG</strong>
+    &nbsp;·&nbsp; Current price: <strong>${fmtE(price.perKg)}/KG</strong>
+  </div>
+  <div class="card">
+    <div class="section-hdr">Transaction history</div>
+    ${isPhoneUI()?`<div class="mobile-stack">${(inv.txns||[]).map(t=>mobileAccordion(
+      t.id,
+      `${t.type==='stock_in'?'Stock in':'Stock out'} · ${fmtDate(t.date)}`,
+      mobileChip(`${fmtN(t.qty)} KG`,t.type==='stock_in'?'success':'warn'),
+      mobileInfoGrid([
+        ['Type',t.type==='stock_in'?'Stock in':'Stock out'],
+        ['Date',fmtDate(t.date)],
+        ['Quantity',`${fmtN(t.qty)} KG`],
+        ['Note',t.note||'—']
+      ])
+    )).join('')}</div>`:`<table><thead><tr><th>ID</th><th>Type</th><th>Qty</th><th>Date</th><th>Note</th></tr></thead>
+    <tbody>${(inv.txns||[]).map(t=>`<tr>
+      <td style="font-family:var(--font-mono,monospace);font-size:10px">${t.id}</td>
+      <td><span class="badge ${t.type==='stock_in'?'badge-success':'badge-warning'}">${t.type==='stock_in'?'Stock in':'Stock out'}</span></td>
+      <td>${fmtN(t.qty)}</td><td>${fmtDate(t.date)}</td>
+      <td style="color:var(--color-text-secondary)">${t.note||''}</td>
+    </tr>`).join('')}</tbody></table>`}
+  </div>`;
+
+  document.getElementById('addStockBtn').addEventListener('click',()=>{
+    modal(`<div class="modal">
+      <div class="modal-title">Add stock received <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="form-group"><label>Quantity (KG) *</label><input id="si_qty" type="number" placeholder="0"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Date received</label><input id="si_date" type="date" value="${today()}"></div>
+        <div class="form-group"><label>Note / Supplier</label><input id="si_note" placeholder="Optional"></div>
+      </div>
+      <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveStockIn()">Add stock</button></div>
+    </div>`);
+  });
+  document.getElementById('setPriceBtn').addEventListener('click',()=>{
+    const price=DB.get('price')||{perKg:85};
+    modal(`<div class="modal">
+      <div class="modal-title">Update selling price <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div class="form-group"><label>New price per KG (ETB) *</label><input id="p_price" type="number" value="${price.perKg}"></div>
+      <div class="form-group"><label>Effective date</label><input id="p_date" type="date" value="${today()}"></div>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px">This updates globally for all supermarkets. You can also generate a price change letter from the Documents page.</div>
+      <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePrice()">Update price</button></div>
+    </div>`);
+  });
+};
+
+window.saveStockIn=function(){
+  const qty=parseFloat(document.getElementById('si_qty').value)||0;
+  if(qty<=0){toast('Enter valid quantity','error');return;}
+  apiFetch('/api/inventory/stock-in',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      qty,
+      transaction_date:document.getElementById('si_date').value,
+      note:document.getElementById('si_note').value
+    })
+  })
+    .then(()=>syncLiveData(true))
+    .then(()=>{closeModal();toast(fmtN(qty)+' KG added to warehouse');PAGES.inventory();})
+    .catch(err=>toast(err.message||'Stock in failed','error'));
+};
+window.savePrice=function(){
+  const p=parseFloat(document.getElementById('p_price').value);
+  if(p<=0){toast('Enter valid price','error');return;}
+  apiFetch('/api/inventory/price',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      price_per_kg:p,
+      effective_date:document.getElementById('p_date').value
+    })
+  })
+    .then(()=>syncLiveData(true))
+    .then(()=>{closeModal();toast('Price updated to ETB '+p+'/KG');PAGES.inventory();})
+    .catch(err=>toast(err.message||'Price update failed','error'));
+};
+
+PAGES.deliveries=function(){
+  const pc=document.getElementById('pageContent');
+  const ta=document.getElementById('topActions');
+  ta.innerHTML=`<button class="btn btn-primary btn-sm" id="addDelBtn">+ New delivery</button>`;
+  let tab='all';
+  function render(){
+    const dels=DB.get('dels')||[];
+    const sms=DB.get('sms')||[];
+    const show=tab==='all'?dels:dels.filter(d=>d.smId===tab);
+    pc.innerHTML=`
+    <div class="tab-bar" id="dTabs">
+      <button class="tab ${tab==='all'?'active':''}" data-t="all">All</button>
+      ${sms.map(s=>`<button class="tab ${tab===s.id?'active':''}" data-t="${s.id}">${s.name.split(' ')[0]}</button>`).join('')}
+    </div>
+    <div class="card-grid">
+      <div class="metric"><div class="metric-label">Deliveries</div><div class="metric-value">${show.length}</div></div>
+      <div class="metric"><div class="metric-label">Total delivered</div><div class="metric-value">${fmtN(show.reduce((s,d)=>s+d.qty,0))} KG</div></div>
+      <div class="metric success"><div class="metric-label">Total sold</div><div class="metric-value">${fmtN(show.reduce((s,d)=>s+(d.sold||0),0))} KG</div></div>
+      <div class="metric warn"><div class="metric-label">Unsold balance</div><div class="metric-value">${fmtN(show.reduce((s,d)=>s+(d.qty-d.sold-d.ret),0))} KG</div></div>
+    </div>
+    <div class="card">
+    ${isPhoneUI()?`${show.length?`<div class="mobile-stack">${show.map(d=>mobileAccordion(
+      d.fs,
+      `${d.smName} · ${fmtDate(d.date)}`,
+      mobileChip(`${fmtN(d.qty)} KG`,`success`)+mobileChip(`Sold ${fmtN(d.sold||0)} KG`)+mobileChip(`Bal ${fmtN(d.qty-(d.sold||0)-(d.ret||0))} KG`,d.ret?'warn':''),
+      mobileInfoGrid([
+        ['Delivered',`${fmtN(d.qty)} KG`],
+        ['Sold',`${fmtN(d.sold||0)} KG`],
+        ['Returned',`${fmtN(d.ret||0)} KG`],
+        ['Balance',`${fmtN(d.qty-(d.sold||0)-(d.ret||0))} KG`]
+      ]),
+      `<button class="btn btn-sm" onclick="openSalesReport('${d.id}')">Sales</button><button class="btn btn-sm" onclick="showDocMenu('${d.id}','${d.fs}')">Docs</button>`
+    )).join('')}</div>`:`<div class="empty">No deliveries yet.</div>`}`:`<table><thead><tr><th>FS#</th><th>Supermarket</th><th>Delivered</th><th>Sold</th><th>Returned</th><th>Balance</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>${show.length?show.map(d=>`<tr>
+      <td style="font-family:var(--font-mono,monospace);font-size:11px;font-weight:500">${d.fs}</td>
+      <td>${d.smName}</td><td>${fmtN(d.qty)} KG</td>
+      <td><span class="badge badge-success">${fmtN(d.sold||0)} KG</span></td>
+      <td>${d.ret?`<span class="badge badge-warning">${fmtN(d.ret)} KG</span>`:'—'}</td>
+      <td>${fmtN(d.qty-(d.sold||0)-(d.ret||0))} KG</td>
+      <td>${fmtDate(d.date)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="openSalesReport('${d.id}')">Sales</button>
+        <button class="btn btn-sm" onclick="showDocMenu('${d.id}','${d.fs}')" style="margin-left:3px">📄</button>
+      </td>
+    </tr>`).join(''):`<tr><td colspan="8"><div class="empty">No deliveries yet.</div></td></tr>`}
+    </tbody></table>`}</div>`;
+    document.querySelectorAll('#dTabs .tab').forEach(t=>t.addEventListener('click',()=>{tab=t.dataset.t;render();}));
+  }
+  render();
+  document.getElementById('addDelBtn').addEventListener('click',()=>{
+    const sms=DB.get('sms')||[];
+    const inv=DB.get('inv')||{stock:0};
+    modal(`<div class="modal">
+      <div class="modal-title">New delivery <span class="modal-close" onclick="closeModal()">✕</span></div>
+      <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:12px;background:var(--color-background-secondary);padding:6px 8px;border-radius:6px">Warehouse stock: <strong>${fmtN(inv.stock)} KG</strong></div>
+      <div class="form-group"><label>Supermarket *</label>
+        <select id="del_sm"><option value="">— Select —</option>
+        ${sms.filter(s=>s.status==='Active').map(s=>`<option value="${s.id}|${s.name}">${s.name} — ${s.branch}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Quantity (KG) *</label><input id="del_qty" type="number" placeholder="0"></div>
+        <div class="form-group"><label>Date</label><input id="del_date" type="date" value="${today()}"></div>
+      </div>
+      <div class="form-group"><label>Driver (optional)</label><input id="del_driver" placeholder="Driver name"></div>
+      <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveDelivery()">Create & generate FS#</button></div>
+    </div>`);
+  });
+};
+
+window.saveDelivery=function(){
+  const smVal=document.getElementById('del_sm').value;
+  if(!smVal){toast('Select a supermarket','error');return;}
+  const qty=parseFloat(document.getElementById('del_qty').value)||0;
+  if(qty<=0){toast('Enter a valid quantity','error');return;}
+  const inv=DB.get('inv')||{stock:0};
+  if(qty>inv.stock){toast('Insufficient warehouse stock ('+fmtN(inv.stock)+' KG)','error');return;}
+  const [smId] = smVal.split('|');
+  apiFetch('/api/deliveries',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      supermarket_id:smId,
+      qty_delivered:qty,
+      delivery_date:document.getElementById('del_date').value,
+      driver:document.getElementById('del_driver').value
+    })
+  })
+    .then(created=>syncLiveData(true).then(()=>created))
+    .then(created=>{closeModal();toast('Delivery '+created.fs_number+' created');PAGES.deliveries();})
+    .catch(err=>toast(err.message||'Delivery creation failed','error'));
+};
+
+window.openSalesReport=function(delId){
+  const dels=DB.get('dels')||[];
+  const d=dels.find(x=>x.id===delId);
+  if(!d)return;
+  const price=DB.get('price')||{perKg:85};
+  modal(`<div class="modal">
+    <div class="modal-title">Report sales — ${d.fs} <span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:12px;background:var(--color-background-secondary);padding:8px;border-radius:6px">
+      <strong>${d.smName}</strong> · Delivered: ${fmtN(d.qty)} KG · Price: ETB ${price.perKg}/KG
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Qty sold (KG)</label><input id="rs_sold" type="number" value="${d.sold||0}"></div>
+      <div class="form-group"><label>Qty returned (KG)</label><input id="rs_ret" type="number" value="${d.ret||0}"></div>
+    </div>
+    <div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:8px">Revenue = qty sold × ETB ${price.perKg}/KG. Balance updates the supermarket's outstanding.</div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="saveSalesReport('${delId}')">Save</button></div>
+  </div>`);
+};
+
+window.saveSalesReport=function(id){
+  const sold=parseFloat(document.getElementById('rs_sold').value)||0;
+  const ret=parseFloat(document.getElementById('rs_ret').value)||0;
+  const dels=DB.get('dels')||[];
+  const idx=dels.findIndex(d=>d.id===id);
+  if(idx<0)return;
+  const d=dels[idx];
+  if(sold+ret>d.qty){toast('Sold+returned > delivered','error');return;}
+  apiFetch('/api/deliveries/'+id+'/sales',{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({qty_sold:sold,qty_returned:ret})
+  })
+    .then(()=>syncLiveData(true))
+    .then(()=>{closeModal();toast('Sales report saved');PAGES.deliveries();})
+    .catch(err=>toast(err.message||'Sales report failed','error'));
+};
+
+PAGES.receivables=function(){
+  const pc=document.getElementById('pageContent');
+  const ta=document.getElementById('topActions');
+  ta.innerHTML=`<button class="btn btn-sm btn-primary" onclick="nav('documents')">📄 Price letter</button>`;
+  const sms=DB.get('sms')||[];
+  const total=sms.reduce((s,m)=>s+(m.outstanding||0),0);
+  const over=sms.filter(s=>s.outstanding>s.creditLimit);
+  pc.innerHTML=`
+  ${over.map(s=>`<div class="alert alert-danger"><span>⚠</span><span>${s.name} exceeded credit limit: ${fmtE(s.outstanding)} / ${fmtE(s.creditLimit)}</span></div>`).join('')}
+  <div class="card-grid">
+    <div class="metric danger"><div class="metric-label">Total outstanding</div><div class="metric-value">${fmtE(total)}</div></div>
+    <div class="metric warn"><div class="metric-label">Over limit</div><div class="metric-value">${over.length}</div><div class="metric-sub">supermarkets</div></div>
+    <div class="metric warn"><div class="metric-label">Near limit</div><div class="metric-value">${sms.filter(s=>s.outstanding>s.creditLimit*.8&&s.outstanding<=s.creditLimit).length}</div></div>
+    <div class="metric"><div class="metric-label">Active supermarkets</div><div class="metric-value">${sms.filter(s=>s.status==='Active').length}</div></div>
+  </div>
+  <div class="card">
+    <div class="section-hdr">Aging & credit status</div>
+    ${isPhoneUI()?`<div class="mobile-stack">${sms.map(sm=>{
+      const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));
+      const bc=p>=100?'danger':p>=80?'warn':'success';
+      const bl=p>=100?'Over limit':p>=80?'Near limit':'Good';
+      return mobileAccordion(
+        sm.name,
+        `${sm.branch || 'No branch'} · ${bl}`,
+        mobileChip(fmtE(sm.outstanding||0),bc)+mobileChip(`${p}% usage`,bc),
+        mobileInfoGrid([
+          ['Outstanding',fmtE(sm.outstanding||0)],
+          ['Credit limit',fmtE(sm.creditLimit)],
+          ['Status',bl],
+          ['Branch',sm.branch||'—']
+        ]),
+        `<button class="btn btn-sm btn-primary" onclick="openPaymentForm('${sm.id}')">Record Payment</button>`
+      );
+    }).join('')}</div>`:`<table><thead><tr><th>Supermarket</th><th>Outstanding</th><th>Credit limit</th><th>Usage</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${sms.map(sm=>{
+      const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));
+      const bc=p>=100?'badge-danger':p>=80?'badge-warning':'badge-success';
+      const bl=p>=100?'Over limit':p>=80?'Near limit':'Good';
+      return`<tr>
+        <td><div style="font-weight:500">${sm.name}</div><div style="font-size:10px;color:var(--color-text-secondary)">${sm.branch}</div></td>
+        <td style="font-weight:500">${fmtE(sm.outstanding||0)}</td>
+        <td>${fmtE(sm.creditLimit)}</td>
+        <td><div style="display:flex;align-items:center;gap:6px">
+          <div class="progress-bar" style="width:70px"><div class="progress-fill ${p>=100?'danger':p>=80?'warn':''}" style="width:${p}%"></div></div>
+          <span style="font-size:10px">${p}%</span></div></td>
+        <td><span class="badge ${bc}">${bl}</span></td>
+        <td><button class="btn btn-sm btn-primary" onclick="openPaymentForm('${sm.id}')">Pay</button></td>
+      </tr>`;}).join('')}
+    </tbody></table>`}
+  </div>`;
+};
+
+window.openPaymentForm=function(smId){
+  const sms=DB.get('sms')||[];
+  const sm=sms.find(s=>s.id===smId);
+  if(!sm)return;
+  const outstanding=Math.max(0,Number(sm.outstanding||0));
+  const suggestedAmount=outstanding>0?outstanding:'';
+  modal(`<div class="modal">
+    <div class="modal-title">Record payment — ${sm.name} <span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div style="font-size:11px;color:var(--color-text-secondary);background:var(--color-background-secondary);padding:8px;border-radius:6px;margin-bottom:12px">Outstanding: <strong>${fmtE(sm.outstanding||0)}</strong></div>
+    <div class="form-row">
+      <div class="form-group"><label>Amount (ETB) *</label><input id="pay_amt" type="number" min="0.01" step="0.01" max="${outstanding}" value="${suggestedAmount}" placeholder="0"></div>
+      <div class="form-group"><label>Date</label><input id="pay_date" type="date" value="${today()}"></div>
+    </div>
+    <div style="font-size:11px;color:var(--color-text-secondary);margin:-4px 0 10px">Payment cannot be higher than current outstanding.</div>
+    <div class="form-row">
+      <div class="form-group"><label>Method</label><select id="pay_method"><option>Bank Transfer</option><option>Cash</option><option>Cheque</option><option>Mobile Banking</option></select></div>
+      <div class="form-group"><label>Reference no.</label><input id="pay_ref" placeholder="e.g. TXN12345"></div>
+    </div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePayment('${smId}')">Save payment</button></div>
+  </div>`);
+};
+
+window.savePayment=function(smId){
+  const amt=parseFloat(document.getElementById('pay_amt').value)||0;
+  if(amt<=0){toast('Enter valid amount','error');return;}
+  const sm=(DB.get('sms')||[]).find(s=>s.id===smId);
+  const outstanding=Number(sm?.outstanding||0);
+  if(outstanding<=0){toast('No outstanding balance for this supermarket','error');return;}
+  if(amt>outstanding){toast('Payment exceeds outstanding balance','error');return;}
+  apiFetch('/api/payments',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      supermarket_id:smId,
+      amount:amt,
+      payment_date:document.getElementById('pay_date').value,
+      method:document.getElementById('pay_method').value,
+      reference_no:document.getElementById('pay_ref').value
+    })
+  })
+    .then(()=>syncLiveData(true))
+    .then(()=>{closeModal();toast(fmtE(amt)+' payment recorded');PAGES.receivables();})
+    .catch(err=>toast(err.message||'Payment save failed','error'));
+};
+
+PAGES.payments=function(){
+  const pc=document.getElementById('pageContent');
+  const pays=DB.get('pays')||[];
+  const total=pays.reduce((s,p)=>s+p.amount,0);
+  pc.innerHTML=`
+  <div class="card-grid">
+    <div class="metric success"><div class="metric-label">Total collected</div><div class="metric-value">${fmtE(total)}</div></div>
+    <div class="metric"><div class="metric-label">Transactions</div><div class="metric-value">${pays.length}</div></div>
+  </div>
+  <div class="card">
+    <div class="section-hdr">Payment history
+      <button class="btn btn-sm" onclick="nav('export')">Export Excel</button>
+    </div>
+    ${isPhoneUI()?`${pays.length?`<div class="mobile-stack">${pays.map(p=>mobileAccordion(
+      p.ref,
+      `${p.smName} · ${fmtDate(p.date)}`,
+      mobileChip(fmtE(p.amount),'success')+mobileChip(p.method),
+      mobileInfoGrid([
+        ['Amount',fmtE(p.amount)],
+        ['Method',p.method],
+        ['Date',fmtDate(p.date)],
+        ['Supermarket',p.smName]
+      ])
+    )).join('')}</div>`:`<div class="empty">No payments yet.</div>`}`:`<table><thead><tr><th>Ref</th><th>Supermarket</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+    <tbody>${pays.length?pays.map(p=>`<tr>
+      <td style="font-family:var(--font-mono,monospace);font-size:10px">${p.ref}</td>
+      <td>${p.smName}</td><td style="font-weight:500">${fmtE(p.amount)}</td>
+      <td><span class="badge badge-info">${p.method}</span></td>
+      <td>${fmtDate(p.date)}</td>
+    </tr>`).join(''):`<tr><td colspan="5"><div class="empty">No payments yet.</div></td></tr>`}
+    </tbody></table>`}
+  </div>`;
+};
+
+PAGES.documents=function(){
+  const pc=document.getElementById('pageContent');
+  const dels=sortByNewest((DB.get('dels')||[]).slice());
+  const sms=DB.get('sms')||[];
+  const price=DB.get('price')||{perKg:85};
+  const company=normalizeCompany(DB.get('company'));
+  const activeSms=sms.filter(s=>s.status==='Active');
+  let previewType=window.__docPreviewType||'price';
+  let selectedDeliveryId=window.__docSelectedDeliveryId||dels[0]?.id||'';
+  let receiptSearch=window.__docReceiptSearch||'';
+  let receiptListLimit=window.__docReceiptListLimit||20;
+  const recentDeliveries=dels.slice(0,6);
+  let draftProductLines=Array.isArray(window.__docProductLines)?window.__docProductLines:[
+    {name:'Tsion Parboiled Brown Rice',qty:0},
+    {name:'Tsion White Rice',qty:0}
+  ];
+  const attachmentState={items:[],loading:false};
+
+  const companyName=escapeHtml(company.name);
+  const companyNameUpper=escapeHtml(company.name.toUpperCase());
+  const companyTagline=escapeHtml(company.tagline);
+  const companyContactLine=escapeHtml([company.phone,company.address].filter(Boolean).join(' | '));
+
+  function getSelectedDelivery(){
+    return dels.find(d=>d.id===selectedDeliveryId)||recentDeliveries[0]||null;
+  }
+
+  function normalizeProductLines(lines){
+    return (lines||[]).map(line=>({
+      name:String(line?.name||'').trim(),
+      qty:parseFloat(line?.qty||0)
+    })).filter(line=>line.name&&Number.isFinite(line.qty)&&line.qty>0);
+  }
+
+  function readProductLinesFromDom(){
+    const rows=[...document.querySelectorAll('.sr-product-row')];
+    const mapped=rows.map(row=>({
+      name:row.querySelector('.sr-product-name')?.value||'',
+      qty:row.querySelector('.sr-product-qty')?.value||0
+    }));
+    draftProductLines=mapped;
+    window.__docProductLines=draftProductLines;
+    return normalizeProductLines(mapped);
+  }
+
+  function getReceiptProductState(selectedDelivery){
+    const receiptState=getReceiptAdjustState(selectedDelivery);
+    let lines=readProductLinesFromDom();
+    if(!lines.length){
+      lines=[{name:'Tsion Parboiled Brown Rice',qty:receiptState.soldQty}].filter(line=>line.qty>0);
+    }
+    const totalQty=lines.reduce((sum,line)=>sum+line.qty,0);
+    return {lines,totalQty};
+  }
+
+  function getFilteredReceiptDeliveries(){
+    const q=(receiptSearch||'').trim().toLowerCase();
+    if(!q)return dels;
+    return dels.filter(d=>[
+      d.fs,
+      d.smName,
+      fmtDate(d.date)
+    ].join(' ').toLowerCase().includes(q));
+  }
+
+  function getSelectedOutletLabel(){
+    const selected=document.getElementById('do_sm');
+    if(!selected)return activeSms[0]?`${activeSms[0].name} — ${activeSms[0].branch}`:'Pending outlet';
+    return selected.selectedOptions[0]?.textContent||'Pending outlet';
+  }
+
+  function getReceiptAdjustState(selectedDelivery){
+    const baseQty=Number(selectedDelivery?.qty||0);
+    const adjustRaw=parseFloat(document.getElementById('sr_adjust_kg')?.value||'0');
+    const adjustKg=Number.isFinite(adjustRaw)?adjustRaw:0;
+    const soldQty=Math.max(0,baseQty+adjustKg);
+    const remainingQty=Math.max(0,baseQty-soldQty);
+    const adjustNote=(document.getElementById('sr_adjust_note')?.value||'').trim();
+    return {baseQty,adjustKg,soldQty,remainingQty,adjustNote};
+  }
+
+  function getReceiptQueryString(){
+    const selectedDelivery=getSelectedDelivery();
+    const state=getReceiptAdjustState(selectedDelivery);
+    const productState=getReceiptProductState(selectedDelivery);
+    const params=new URLSearchParams();
+    if(state.adjustKg!==0) params.set('adjust_kg',String(state.adjustKg));
+    if(state.adjustNote) params.set('adjust_note',state.adjustNote);
+    if(productState.lines.length) params.set('product_lines',JSON.stringify(productState.lines));
+    if(document.getElementById('sr_bw_print')?.checked) params.set('bw','1');
+    const qs=params.toString();
+    return qs?`?${qs}`:'';
+  }
+
+  function getAttachmentMetaState(selectedDelivery){
+    const fsNumber=(document.getElementById('sr_attach_fs')?.value||selectedDelivery?.fs||'').trim();
+    const docDate=(document.getElementById('sr_attach_date')?.value||selectedDelivery?.date||today()).trim();
+    return {fsNumber,docDate};
+  }
+
+  function getAttachmentQueryString(){
+    const selectedDelivery=getSelectedDelivery();
+    const receiptQs=getReceiptQueryString();
+    const state=getAttachmentMetaState(selectedDelivery);
+    const params=new URLSearchParams(receiptQs.startsWith('?')?receiptQs.slice(1):receiptQs);
+    if(state.fsNumber) params.set('fs_no',state.fsNumber);
+    if(state.docDate) params.set('doc_date',state.docDate);
+    const qs=params.toString();
+    return qs?`?${qs}`:'';
+  }
+
+  function renderAttachments(message='',tone=''){
+    const status=document.getElementById('pdfAttachmentStatus');
+    const list=document.getElementById('pdfAttachmentList');
+    if(!status||!list)return;
+    status.className='pdf-upload-status'+(tone?` ${tone}`:'');
+    status.textContent=message||(
+      attachmentState.loading?
+        'Loading uploaded attachments...':
+        attachmentState.items.length?
+          `${attachmentState.items.length} uploaded attachment${attachmentState.items.length===1?'':'s'} available from the backend.`:
+          'No uploaded attachments yet. PDF, JPG, PNG, and WEBP files up to 10 MB are accepted.'
+    );
+    list.innerHTML=attachmentState.items.map(item=>`<div class="pdf-attachment-item">
+      <div class="pdf-attachment-meta">
+        <div class="pdf-attachment-name">${escapeHtml(item.originalName||item.filename)}</div>
+        <div class="pdf-attachment-sub">${fmtBytes(item.size)} · ${escapeHtml(fmtDate(item.uploadedAt))}</div>
+      </div>
+      <a class="pdf-attachment-link" href="${apiUrl(item.url)}" target="_blank" rel="noopener">Open</a>
+    </div>`).join('');
+  }
+
+  async function loadAttachments(){
+    attachmentState.loading=true;
+    renderAttachments();
+    try{
+      attachmentState.items=await apiFetch('/api/uploads/attachments');
+      renderAttachments();
+    }catch(err){
+      renderAttachments(err.message||'Failed to load attachments','error');
+    }finally{
+      attachmentState.loading=false;
+    }
+  }
+
+  async function uploadAttachment(file){
+    const formData=new FormData();
+    formData.append('attachment',file);
+    const res=await fetch(apiUrl('/api/uploads/attachments'),{method:'POST',body:formData});
+    if(!res.ok){
+      let msg='Attachment upload failed';
+      try{
+        const body=await res.json();
+        msg=body.error||body.message||msg;
+      }catch{}
+      throw new Error(msg);
+    }
+    return res.json();
+  }
+
+  function renderPreview(){
+    const selectedDelivery=getSelectedDelivery();
+    const previewBody=document.getElementById('pdfPreviewBody');
+    const previewTitle=document.getElementById('pdfPreviewTitle');
+    const previewPrimary=document.getElementById('pdfPreviewPrimary');
+    const previewSecondary=document.getElementById('pdfPreviewSecondary');
+    if(!previewBody||!previewTitle||!previewPrimary||!previewSecondary)return;
+
+    const currentPrice=price.perKg||0;
+    const newPrice=parseFloat(document.getElementById('pcl_price')?.value||'')||currentPrice+5;
+    const effectiveDate=document.getElementById('pcl_date')?.value||today();
+    const priceRecipient=document.getElementById('pcl_sm')?.value||'all';
+    const priceMessage=(document.getElementById('pcl_msg')?.value||'').trim()||'Due to current logistics and sourcing costs, we are updating our pricing structure while maintaining product quality and delivery reliability across the network.';
+    const orderQty=parseFloat(document.getElementById('do_qty')?.value||'')||0;
+    const orderDate=document.getElementById('do_date')?.value||today();
+    const orderDriver=(document.getElementById('do_driver')?.value||'Dispatch team').trim()||'Dispatch team';
+    const orderNotes=(document.getElementById('do_notes')?.value||'').trim()||'Both parties should sign this same A4 receipt after checking quantity and bag condition.';
+    const receiptState=getReceiptAdjustState(selectedDelivery);
+    const receiptProductState=getReceiptProductState(selectedDelivery);
+    const attachmentStateMeta=getAttachmentMetaState(selectedDelivery);
+    const receiptSold=receiptProductState.totalQty>0?receiptProductState.totalQty:receiptState.soldQty;
+    const receiptAmount=receiptSold*currentPrice;
+    const recipientLabel=priceRecipient==='all'?`All active supermarkets (${activeSms.length})`:(activeSms.find(s=>s.id===priceRecipient)?.name||'Selected supermarket');
+    const deliveryBalance=selectedDelivery?selectedDelivery.qty-(selectedDelivery.sold||0)-(selectedDelivery.ret||0):0;
+
+    document.querySelectorAll('[data-doc-preview]').forEach(btn=>btn.classList.toggle('active',btn.dataset.docPreview===previewType));
+    document.querySelectorAll('[data-delivery-id]').forEach(btn=>btn.classList.toggle('active',btn.dataset.deliveryId===selectedDeliveryId));
+
+    if(previewType==='price'){
+      previewTitle.textContent='Price Change Letter';
+      previewPrimary.textContent='Generate PDF';
+      previewSecondary.textContent='Open modal preview';
+      previewBody.innerHTML=`
+        <div class="pdf-watermark">TS</div>
+        <div class="pdf-doc-head">
+          <div>
+            <div class="pdf-brand">
+              <div class="pdf-brand-badge">✦</div>
+              <div>
+                <h4>${companyNameUpper}</h4>
+                <p>${companyTagline}<br>${companyContactLine}</p>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="pdf-doc-status">Official Notice</div>
+            <div class="pdf-doc-meta">Doc ID: PCL-${String(Date.now()).slice(-6)}<br>Date: ${fmtDate(today())}</div>
+          </div>
+        </div>
+        <div class="pdf-copy">
+          <div class="pdf-doc-title">NOTICE OF PRICE ADJUSTMENT</div>
+          <p>Dear Valued Distribution Partner,</p>
+          <p>This letter serves as official notification regarding an update to the pricing structure for ${companyName}. Effective <strong>${fmtDate(effectiveDate)}</strong>, the new unit price will be set as follows.</p>
+          <div class="pdf-highlight">
+            <div>
+              <div class="pdf-highlight-label">New Unit Price</div>
+              <div class="pdf-inline-note">Recipients: ${recipientLabel}</div>
+            </div>
+            <div class="pdf-highlight-value">ETB ${fmtN(newPrice)}</div>
+          </div>
+          <div class="pdf-data-grid">
+            <div class="pdf-data-card"><span>Current price</span><strong>ETB ${fmtN(currentPrice)} / KG</strong></div>
+            <div class="pdf-data-card"><span>Effective date</span><strong>${fmtDate(effectiveDate)}</strong></div>
+          </div>
+          <p>${priceMessage}</p>
+          <div class="pdf-signoff">
+            <div class="pdf-sign-line"></div>
+            <p><strong>${companyName}</strong><br><span class="pdf-doc-meta">Authorized Signatory</span></p>
+          </div>
+          <div class="pdf-sheet-footer">
+            <div class="pdf-qr"><div class="pdf-qr-box"></div><div>Scan to verify document authenticity<br>on the Tsion Portal.</div></div>
+            <div class="pdf-doc-footer" style="text-align:right">${companyContactLine}<br>Page 1 of 1</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    if(previewType==='order'){
+      previewTitle.textContent='Delivery Order';
+      previewPrimary.textContent='Generate PDF';
+      previewSecondary.textContent='Switch to delivery note';
+      previewBody.innerHTML=`
+        <div class="pdf-watermark">DO</div>
+        <div class="pdf-doc-head">
+          <div>
+            <div class="pdf-brand">
+              <div class="pdf-brand-badge">🚚</div>
+              <div>
+                <h4>${companyNameUpper}</h4>
+                <p>Official delivery receipt format<br>${companyContactLine}</p>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="pdf-doc-status">Signature Required</div>
+            <div class="pdf-doc-meta">Date: ${fmtDate(orderDate)}<br>Prepared by: ERP Dispatch Desk</div>
+          </div>
+        </div>
+        <div class="pdf-copy">
+          <div class="pdf-doc-title">DELIVERY RECEIPT</div>
+          <div class="pdf-data-grid">
+            <div class="pdf-data-card"><span>Recipient outlet</span><strong>${getSelectedOutletLabel()}</strong></div>
+            <div class="pdf-data-card"><span>Delivery date</span><strong>${fmtDate(orderDate)}</strong></div>
+            <div class="pdf-data-card"><span>Quantity</span><strong>${fmtN(orderQty)} KG</strong></div>
+            <div class="pdf-data-card"><span>Driver</span><strong>${orderDriver}</strong></div>
+          </div>
+          <div class="pdf-highlight">
+            <div>
+              <div class="pdf-highlight-label">Signing instruction</div>
+              <div class="pdf-inline-note">Both parties should verify quantity and sign the receipt at handover.</div>
+            </div>
+            <div class="pdf-inline-note" style="max-width:220px;text-align:right">${orderNotes}</div>
+          </div>
+          <p>This delivery receipt is issued in formal copy format for warehouse and outlet records. Both parties sign upon handover after confirming quantity and condition.</p>
+          <div class="pdf-data-grid">
+            <div class="pdf-data-card"><span>Released by</span><strong>${companyName}</strong></div>
+            <div class="pdf-data-card"><span>Received by</span><strong>${getSelectedOutletLabel()}</strong></div>
+          </div>
+          <div class="pdf-signoff">
+            <div class="pdf-data-grid">
+              <div class="pdf-data-card"><span>Name &amp; Signature</span><strong>${orderDriver}</strong></div>
+              <div class="pdf-data-card"><span>Name &amp; Signature</span><strong>Outlet representative</strong></div>
+            </div>
+          </div>
+          <div class="pdf-sheet-footer">
+            <div class="pdf-qr"><div class="pdf-qr-box"></div><div>Receipt is archived in dispatch<br>and outlet records after signing.</div></div>
+            <div class="pdf-doc-footer" style="text-align:right">Official receipt copies · Signed at handover<br>Page 1 of 1</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    if(previewType==='receipt'){
+      previewTitle.textContent='Sales Receipt';
+      previewPrimary.textContent='Open receipt PDF';
+      previewSecondary.textContent='Open attachment copy';
+      previewBody.innerHTML=selectedDelivery?`
+        <div class="pdf-watermark">SR</div>
+        <div class="pdf-doc-head">
+          <div>
+            <div class="pdf-brand">
+              <div class="pdf-brand-badge">🧾</div>
+              <div>
+                <h4>${companyNameUpper}</h4>
+                <p>Sales settlement receipt<br>Linked to delivery ${escapeHtml(selectedDelivery.fs)}</p>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="pdf-doc-status">Settlement</div>
+            <div class="pdf-doc-meta">Receipt ref: SR-${selectedDelivery.fs}<br>Date: ${fmtDate(selectedDelivery.date)}</div>
+          </div>
+        </div>
+        <div class="pdf-copy">
+          <div class="pdf-doc-title">SALES RECEIPT</div>
+          <div class="pdf-data-grid">
+            <div class="pdf-data-card"><span>Supermarket</span><strong>${selectedDelivery.smName}</strong></div>
+            <div class="pdf-data-card"><span>Receipt FS#</span><strong>${attachmentStateMeta.fsNumber||selectedDelivery.fs}</strong></div>
+            <div class="pdf-data-card"><span>Final sold quantity</span><strong>${fmtN(receiptSold)} KG</strong></div>
+            <div class="pdf-data-card"><span>Estimated value</span><strong>${fmtE(receiptAmount)}</strong></div>
+          </div>
+          <div class="pdf-highlight">
+            <div>
+              <div class="pdf-highlight-label">Assumption and manual adjustment</div>
+              <div class="pdf-inline-note">Default assumes all delivered stock is sold. Use +/- KG adjustment when needed.</div>
+            </div>
+            <div class="pdf-highlight-value">${fmtN(receiptState.baseQty)} + (${fmtN(receiptState.adjustKg)})</div>
+          </div>
+          <div class="pdf-data-grid">
+            <div class="pdf-data-card"><span>Remaining quantity</span><strong>${fmtN(receiptState.remainingQty)} KG</strong></div>
+            <div class="pdf-data-card"><span>Attachment receipt date</span><strong>${fmtDate(attachmentStateMeta.docDate)}</strong></div>
+            <div class="pdf-data-card"><span>Products</span><strong>${receiptProductState.lines.length||1} line(s)</strong></div>
+            <div class="pdf-data-card"><span>Print mode</span><strong>${document.getElementById('sr_bw_print')?.checked?'Black & White':'Standard'}</strong></div>
+          </div>
+          <p>This sales receipt summarizes the commercial outcome for the selected delivery. Attachment copy is generated as a separate PDF with a diagonal ATTACHMENT watermark.</p>
+          <div class="pdf-sheet-footer">
+            <div class="pdf-qr"><div class="pdf-qr-box"></div><div>Receipt integrity is traceable<br>through the ERP payment ledger.</div></div>
+            <div class="pdf-doc-footer" style="text-align:right">${companyContactLine}<br>Page 1 of 1</div>
+          </div>
+        </div>`:`<div class="empty">Create a delivery first to generate receipts.</div>`;
+      return;
+    }
+
+    previewTitle.textContent='Delivery Note';
+    previewPrimary.textContent='Open delivery note';
+    previewSecondary.textContent='Open sales receipt';
+    previewBody.innerHTML=selectedDelivery?`
+      <div class="pdf-watermark">DN</div>
+      <div class="pdf-doc-head">
+        <div>
+          <div class="pdf-brand">
+            <div class="pdf-brand-badge">📋</div>
+            <div>
+              <h4>${companyNameUpper}</h4>
+              <p>Outbound delivery confirmation<br>${companyContactLine}</p>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="pdf-doc-status">In Transit</div>
+          <div class="pdf-doc-meta">Delivery ref: ${selectedDelivery.fs}<br>Date: ${fmtDate(selectedDelivery.date)}</div>
+        </div>
+      </div>
+      <div class="pdf-copy">
+        <div class="pdf-doc-title">DELIVERY NOTE</div>
+        <div class="pdf-data-grid">
+          <div class="pdf-data-card"><span>Destination</span><strong>${selectedDelivery.smName}</strong></div>
+          <div class="pdf-data-card"><span>Delivered quantity</span><strong>${fmtN(selectedDelivery.qty)} KG</strong></div>
+          <div class="pdf-data-card"><span>Returned quantity</span><strong>${fmtN(selectedDelivery.ret||0)} KG</strong></div>
+          <div class="pdf-data-card"><span>Current balance</span><strong>${fmtN(deliveryBalance)} KG</strong></div>
+        </div>
+        <div class="pdf-highlight">
+          <div>
+            <div class="pdf-highlight-label">Dispatch summary</div>
+            <div class="pdf-inline-note">Use this note for gate release, outlet sign-off, and stock traceability.</div>
+          </div>
+          <div class="pdf-highlight-value">${selectedDelivery.fs}</div>
+        </div>
+        <p>This document confirms that the stated stock has left the warehouse and is assigned to the selected outlet. The backend-generated note includes the official signature area and printable footer.</p>
+        <div class="pdf-sheet-footer">
+          <div class="pdf-qr"><div class="pdf-qr-box"></div><div>Delivery confirmation QR<br>verifies batch and outlet.</div></div>
+          <div class="pdf-doc-footer" style="text-align:right">${companyContactLine}<br>Page 1 of 1</div>
+        </div>
+      </div>`:`<div class="empty">No deliveries are available yet.</div>`;
+  }
+
+  pc.innerHTML=`
+    <div class="pdf-hub">
+      <section class="pdf-hero">
+        <div class="pdf-hero-copy">
+          <div class="pdf-kicker">Document Hub</div>
+          <h2>Generate, preview, and dispatch distribution PDFs from one place.</h2>
+          <p>The document center keeps price notices, delivery orders, delivery notes, and sales receipts in one workflow so warehouse and finance teams can move faster without leaving the ERP.</p>
+          <div class="pdf-segment">
+            <button class="pdf-switch active" type="button" data-doc-preview="price">Price Letter</button>
+            <button class="pdf-switch" type="button" data-doc-preview="order">Delivery Order</button>
+            <button class="pdf-switch" type="button" data-doc-preview="delivery">Delivery Note</button>
+            <button class="pdf-switch" type="button" data-doc-preview="receipt">Sales Receipt</button>
+          </div>
+        </div>
+        <div class="pdf-hero-stats">
+          <div class="pdf-stat">
+            <div class="pdf-stat-label">Active outlets</div>
+            <div class="pdf-stat-value">${activeSms.length}</div>
+            <div class="pdf-stat-note">Ready for notices and delivery orders</div>
+          </div>
+          <div class="pdf-stat">
+            <div class="pdf-stat-label">Recent delivery docs</div>
+            <div class="pdf-stat-value">${recentDeliveries.length}</div>
+            <div class="pdf-stat-note">Selectable for note and receipt output</div>
+          </div>
+        </div>
+      </section>
+      <section class="pdf-stage">
+        <div class="pdf-panel pdf-form-panel">
+          <div class="pdf-card">
+            <div class="pdf-card-head">
+              <div>
+                <h3>Price Change Letter</h3>
+                <p>Prepare a formal pricing notice for all active supermarkets or target a single outlet.</p>
+              </div>
+              <div class="pdf-icon gold">✦</div>
+            </div>
+            <div class="pdf-input-grid">
+              <div class="pdf-field">
+                <label>New Unit Price (ETB)</label>
+                <input id="pcl_price" type="number" placeholder="${price.perKg+5}" value="${price.perKg+5}">
+              </div>
+              <div class="pdf-field">
+                <label>Effective Date</label>
+                <input id="pcl_date" type="date" value="${today()}">
+              </div>
+              <div class="pdf-field full">
+                <label>Recipients</label>
+                <select id="pcl_sm">
+                  <option value="all">All active supermarkets (${activeSms.length})</option>
+                  ${activeSms.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
+                </select>
+              </div>
+              <div class="pdf-field full">
+                <label>Message to Distributors</label>
+                <textarea id="pcl_msg" placeholder="Enter the reason for the adjustment or leave this empty for the standard formal notice."></textarea>
+              </div>
+            </div>
+            <div class="pdf-actions-row">
+              <button class="btn btn-primary" id="priceGenerateBtn" type="button">Generate &amp; Preview</button>
+              <button class="btn" id="pricePreviewBtn" type="button">Preview Letter</button>
+            </div>
+          </div>
+          <div class="pdf-card">
+            <div class="pdf-card-head">
+              <div>
+                <h3>Delivery Order</h3>
+                <p>Generate formal delivery receipt copies for warehouse and outlet records, signed by both parties.</p>
+              </div>
+              <div class="pdf-icon green">🚚</div>
+            </div>
+            <div class="pdf-input-grid">
+              <div class="pdf-field">
+                <label>Recipient Outlet</label>
+                <select id="do_sm">
+                  <option value="">Select supermarket...</option>
+                  ${activeSms.map((s,index)=>`<option value="${s.id}" ${index===0?'selected':''}>${s.name} — ${s.branch}</option>`).join('')}
+                </select>
+              </div>
+              <div class="pdf-field">
+                <label>Quantity (KG)</label>
+                <input id="do_qty" type="number" placeholder="0">
+              </div>
+              <div class="pdf-field">
+                <label>Delivery Date</label>
+                <input id="do_date" type="date" value="${today()}">
+              </div>
+              <div class="pdf-field">
+                <label>Driver</label>
+                <input id="do_driver" type="text" placeholder="Driver name">
+              </div>
+              <div class="pdf-field full">
+                <label>Special Instructions</label>
+                <textarea id="do_notes" placeholder="Route notes, handling instructions, or outlet contact details..."></textarea>
+              </div>
+            </div>
+            <div class="pdf-actions-row">
+              <button class="btn btn-primary" id="orderGenerateBtn" type="button">Generate &amp; Preview</button>
+              <button class="btn" id="orderPreviewBtn" type="button">Refresh Preview</button>
+            </div>
+          </div>
+          <div class="pdf-card">
+            <div class="pdf-card-head">
+              <div>
+                <h3>Receipts &amp; Delivery Notes</h3>
+                <p>Select a recent delivery, then generate delivery note, sales receipt, or sales receipt attachment as separate PDFs.</p>
+              </div>
+              <div class="pdf-icon blue">🧾</div>
+            </div>
+            ${(()=>{
+              const filteredDeliveries=getFilteredReceiptDeliveries();
+              const visibleDeliveries=filteredDeliveries.slice(0,receiptListLimit);
+              return `<div class="pdf-list-tools">
+                <div class="pdf-field">
+                  <label>Find Receipt Fast</label>
+                  <input id="receipt_search" type="text" value="${escapeHtml(receiptSearch)}" placeholder="Search by FS#, supermarket, or date">
+                </div>
+                <button class="btn" id="receipt_clear_search" type="button">Clear</button>
+                <div class="pdf-list-count">Showing ${visibleDeliveries.length} of ${filteredDeliveries.length}</div>
+              </div>
+              <div class="pdf-record-list">
+              ${visibleDeliveries.length?visibleDeliveries.map(d=>`<button class="pdf-record ${d.id===selectedDeliveryId?'active':''}" type="button" data-delivery-id="${d.id}">
+                <div class="pdf-record-top">
+                  <div>
+                    <div class="pdf-record-title">${d.fs}</div>
+                    <div class="pdf-record-sub">${d.smName} · ${fmtDate(d.date)}</div>
+                  </div>
+                  <span class="badge badge-brand">Recent</span>
+                </div>
+                <div class="pdf-record-metrics">
+                  <div class="pdf-record-metric"><strong>${fmtN(d.qty)} KG</strong><span>Delivered</span></div>
+                  <div class="pdf-record-metric"><strong>${fmtN(d.qty)} KG</strong><span>Assumed Sold</span></div>
+                  <div class="pdf-record-metric"><strong>0 KG</strong><span>Assumed Remaining</span></div>
+                </div>
+              </button>`).join(''):`<div class="empty">No matching deliveries.</div>`}
+              </div>
+              <div class="pdf-actions-row" style="margin-top:6px">
+                <button class="btn" id="receipt_load_more" type="button" ${visibleDeliveries.length>=filteredDeliveries.length?'disabled':''}>Load More</button>
+                <button class="btn" id="receipt_show_less" type="button" ${receiptListLimit<=20?'disabled':''}>Show Less</button>
+              </div>`;
+            })()}
+            <div class="pdf-input-grid" style="margin-top:4px">
+              <div class="pdf-field">
+                <label>Sales Adjustment (+/- KG)</label>
+                <input id="sr_adjust_kg" type="number" step="1" value="0" placeholder="0">
+              </div>
+              <div class="pdf-field">
+                <label>Adjustment Note (optional)</label>
+                <input id="sr_adjust_note" type="text" placeholder="Reason for adjustment">
+              </div>
+              <div class="pdf-field">
+                <label>Attachment FS#</label>
+                <input id="sr_attach_fs" type="text" value="${recentDeliveries[0]?.fs||''}" placeholder="e.g. FS-0012">
+              </div>
+              <div class="pdf-field">
+                <label>Attachment Date</label>
+                <input id="sr_attach_date" type="date" value="${recentDeliveries[0]?.date||today()}">
+              </div>
+              <div class="pdf-field full">
+                <label>Products (for receipt total)</label>
+                <div class="sr-product-stack" id="sr_product_stack">
+                  ${(draftProductLines.length?draftProductLines:[{name:'Tsion Parboiled Brown Rice',qty:0},{name:'Tsion White Rice',qty:0}]).map((line,idx)=>`<div class="sr-product-row">
+                    <input class="sr-product-name" type="text" value="${escapeHtml(line.name||'')}" placeholder="Product name (e.g. White Rice)">
+                    <input class="sr-product-qty" type="number" step="1" value="${Number(line.qty||0)}" placeholder="KG">
+                    <button class="btn btn-sm sr-product-remove" type="button" data-product-index="${idx}">Remove</button>
+                  </div>`).join('')}
+                </div>
+              </div>
+              <div class="pdf-field full">
+                <label>Print Mode</label>
+                <label style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--color-text-secondary)"><input id="sr_bw_print" type="checkbox"> Black &amp; White PDF mode (print friendly)</label>
+              </div>
+            </div>
+            <div class="pdf-inline-note">Sales assumes full delivered quantity is sold by default. Use adjustment only when you need to add/subtract. FS# and date fields are used for the separate attachment receipt copy.</div>
+            <div class="pdf-actions-row">
+              <button class="btn btn-primary" id="deliveryNoteBtn" type="button">Open Delivery Note</button>
+              <button class="btn" id="salesReceiptBtn" type="button">Open Sales Receipt</button>
+              <button class="btn" id="salesReceiptAttachmentBtn" type="button">Open Sales Receipt Attachment</button>
+              <button class="btn" id="sr_add_product_line" type="button">+ Add Product Line</button>
+            </div>
+          </div>
+          <div class="pdf-card pdf-upload">
+            <label class="pdf-upload-label" for="pdfAttachmentInput">
+              <div class="pdf-upload-icon">⬆</div>
+              <div class="pdf-upload-copy">
+                <strong>Receipt Attachment</strong>
+                <div class="pdf-inline-note">Upload supporting scans to the backend so they can be reopened from any device using this ERP instance.</div>
+              </div>
+              <span class="btn btn-sm">Browse Files</span>
+            </label>
+            <input id="pdfAttachmentInput" type="file">
+            <div class="pdf-upload-status" id="pdfAttachmentStatus">No uploaded attachments yet.</div>
+            <div class="pdf-attachment-list" id="pdfAttachmentList"></div>
+          </div>
+        </div>
+        <div class="pdf-panel pdf-preview-panel">
+          <div class="pdf-window">
+            <div class="pdf-window-bar">
+              <div class="pdf-window-title"><span>◌</span><span id="pdfPreviewTitle">Price Change Letter</span></div>
+              <div class="pdf-window-lights"><span></span><span></span><span></span></div>
+            </div>
+            <div class="pdf-sheet" id="pdfPreviewBody"></div>
+            <div class="pdf-toolbar">
+              <button class="btn" id="pdfPreviewSecondary" type="button">Open modal preview</button>
+              <button class="btn btn-primary" id="pdfPreviewPrimary" type="button">Generate PDF</button>
+            </div>
+          </div>
+          <div class="pdf-insight">
+            <div class="pdf-insight-icon">✓</div>
+            <div>
+              <strong>Smart Template Sync</strong>
+              <span>Document details stay aligned with deliveries, inventory, and receivables so the preview always reflects current ERP data.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>`;
+
+  pc.querySelectorAll('[data-doc-preview]').forEach(btn=>btn.addEventListener('click',()=>{
+    previewType=btn.dataset.docPreview;
+    window.__docPreviewType=previewType;
+    renderPreview();
+  }));
+
+  pc.querySelectorAll('[data-delivery-id]').forEach(btn=>btn.addEventListener('click',()=>{
+    selectedDeliveryId=btn.dataset.deliveryId;
+    window.__docSelectedDeliveryId=selectedDeliveryId;
+    const selectedDelivery=getSelectedDelivery();
+    const fsInput=document.getElementById('sr_attach_fs');
+    const dateInput=document.getElementById('sr_attach_date');
+    if(fsInput&&selectedDelivery?.fs) fsInput.value=selectedDelivery.fs;
+    if(dateInput&&selectedDelivery?.date) dateInput.value=selectedDelivery.date;
+    if(previewType==='price'||previewType==='order')previewType='delivery';
+    window.__docPreviewType=previewType;
+    renderPreview();
+  }));
+
+  document.getElementById('receipt_search')?.addEventListener('input',e=>{
+    receiptSearch=e.target.value||'';
+    receiptListLimit=20;
+    window.__docReceiptSearch=receiptSearch;
+    window.__docReceiptListLimit=receiptListLimit;
+    PAGES.documents();
+  });
+  document.getElementById('receipt_clear_search')?.addEventListener('click',()=>{
+    receiptSearch='';
+    receiptListLimit=20;
+    window.__docReceiptSearch='';
+    window.__docReceiptListLimit=receiptListLimit;
+    PAGES.documents();
+  });
+  document.getElementById('receipt_load_more')?.addEventListener('click',()=>{
+    receiptListLimit+=20;
+    window.__docReceiptListLimit=receiptListLimit;
+    PAGES.documents();
+  });
+  document.getElementById('receipt_show_less')?.addEventListener('click',()=>{
+    receiptListLimit=20;
+    window.__docReceiptListLimit=receiptListLimit;
+    PAGES.documents();
+  });
+
+  document.getElementById('sr_add_product_line')?.addEventListener('click',()=>{
+    draftProductLines.push({name:'',qty:0});
+    window.__docProductLines=draftProductLines;
+    PAGES.documents();
+  });
+  document.querySelectorAll('.sr-product-remove').forEach(btn=>btn.addEventListener('click',()=>{
+    const idx=parseInt(btn.dataset.productIndex||'-1');
+    if(idx>=0){
+      draftProductLines.splice(idx,1);
+      window.__docProductLines=draftProductLines;
+      PAGES.documents();
+    }
+  }));
+  document.querySelectorAll('.sr-product-name,.sr-product-qty').forEach(el=>el.addEventListener('input',()=>{
+    readProductLinesFromDom();
+    renderPreview();
+  }));
+
+  ['pcl_price','pcl_date','pcl_sm','pcl_msg','do_sm','do_qty','do_date','do_driver','do_notes','sr_adjust_kg','sr_adjust_note','sr_attach_fs','sr_attach_date'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.addEventListener('input',renderPreview);
+      el.addEventListener('change',renderPreview);
+    }
+  });
+
+  document.getElementById('priceGenerateBtn')?.addEventListener('click',()=>{
+    previewType='price';
+    renderPreview();
+    genPriceLetter();
+  });
+  document.getElementById('pricePreviewBtn')?.addEventListener('click',()=>{
+    previewType='price';
+    renderPreview();
+    previewPriceLetter();
+  });
+  document.getElementById('orderGenerateBtn')?.addEventListener('click',()=>{
+    previewType='order';
+    renderPreview();
+    genDeliveryOrderForm();
+  });
+  document.getElementById('orderPreviewBtn')?.addEventListener('click',()=>{
+    previewType='order';
+    renderPreview();
+  });
+  document.getElementById('deliveryNoteBtn')?.addEventListener('click',()=>{
+    const selectedDelivery=getSelectedDelivery();
+    if(!selectedDelivery){toast('No delivery selected','error');return;}
+    previewType='delivery';
+    renderPreview();
+    genDocFromTable('delivery',selectedDelivery.id,selectedDelivery.fs);
+  });
+  document.getElementById('salesReceiptBtn')?.addEventListener('click',()=>{
+    const selectedDelivery=getSelectedDelivery();
+    if(!selectedDelivery){toast('No delivery selected','error');return;}
+    previewType='receipt';
+    renderPreview();
+    genDocFromTable('receipt',selectedDelivery.id,selectedDelivery.fs,getReceiptQueryString());
+  });
+  document.getElementById('salesReceiptAttachmentBtn')?.addEventListener('click',()=>{
+    const selectedDelivery=getSelectedDelivery();
+    if(!selectedDelivery){toast('No delivery selected','error');return;}
+    previewType='receipt';
+    renderPreview();
+    genDocFromTable('receipt_attachment',selectedDelivery.id,selectedDelivery.fs,getAttachmentQueryString());
+  });
+  document.getElementById('pdfPreviewPrimary')?.addEventListener('click',()=>{
+    const selectedDelivery=getSelectedDelivery();
+    if(previewType==='price'){genPriceLetter();return;}
+    if(previewType==='order'){genDeliveryOrderForm();return;}
+    if(!selectedDelivery){toast('No delivery selected','error');return;}
+    if(previewType==='receipt'){
+      genDocFromTable('receipt',selectedDelivery.id,selectedDelivery.fs,getReceiptQueryString());
+      return;
+    }
+    genDocFromTable('delivery',selectedDelivery.id,selectedDelivery.fs);
+  });
+  document.getElementById('pdfPreviewSecondary')?.addEventListener('click',()=>{
+    const selectedDelivery=getSelectedDelivery();
+    if(previewType==='price'){previewPriceLetter();return;}
+    if(previewType==='order'){previewType='delivery';renderPreview();return;}
+    if(!selectedDelivery){toast('No delivery selected','error');return;}
+    if(previewType==='delivery'){
+      previewType='receipt';
+      renderPreview();
+      genDocFromTable('receipt',selectedDelivery.id,selectedDelivery.fs,getReceiptQueryString());
+      return;
+    }
+    genDocFromTable('receipt_attachment',selectedDelivery.id,selectedDelivery.fs,getAttachmentQueryString());
+  });
+  document.getElementById('pdfAttachmentInput')?.addEventListener('change',e=>{
+    const file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    renderAttachments('Uploading '+file.name+'...');
+    uploadAttachment(file)
+      .then(uploaded=>{
+        attachmentState.items.unshift(uploaded);
+        renderAttachments(uploaded.originalName+' uploaded successfully.','success');
+        toast(uploaded.originalName+' uploaded','success');
+      })
+      .catch(err=>{
+        renderAttachments(err.message||'Attachment upload failed','error');
+        toast(err.message||'Attachment upload failed','error');
+      })
+      .finally(()=>{e.target.value='';});
+  });
+
+  loadAttachments();
+  renderPreview();
+};
+
+window.genDocFromTable=function(type,id,fs,query=''){
+  toast('Generating '+type+' for '+fs+'...','info');
+  const endpoint=type==='delivery'
+    ? '/api/pdf/delivery-note/'
+    : type==='receipt_attachment'
+      ? '/api/pdf/sales-receipt-attachment/'
+      : '/api/pdf/sales-receipt/';
+  window.open(apiUrl(endpoint+id+(query||'')),'_blank');
+};
+
+window.genDeliveryOrderForm=function(){
+  const smId=document.getElementById('do_sm').value;
+  const qty=parseFloat(document.getElementById('do_qty').value)||0;
+  if(!smId||qty<=0){toast('Fill in supermarket and quantity','error');return;}
+  const body={supermarket_id:smId,qty,delivery_date:document.getElementById('do_date').value,driver:document.getElementById('do_driver').value,notes:document.getElementById('do_notes').value};
+  toast('Generating delivery order...','info');
+  fetch(apiUrl('/api/pdf/delivery-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>{if(!r.ok)throw new Error();return r.blob();})
+    .then(b=>{const u=URL.createObjectURL(b);window.open(u,'_blank');})
+    .catch(()=>toast('Backend not running. Start with: npm run dev in /backend','error'));
+};
+
+window.genPriceLetter=function(){
+  const np=parseFloat(document.getElementById('pcl_price').value);
+  const ed=document.getElementById('pcl_date').value;
+  if(!np||np<=0||!ed){toast('Enter new price and effective date','error');return;}
+  const smSel=document.getElementById('pcl_sm').value;
+  const sms=DB.get('sms')||[];
+  const body={new_price:np,effective_date:ed,message_body:document.getElementById('pcl_msg').value||null,supermarket_ids:smSel==='all'?null:[smSel]};
+  toast('Generating price letters...','info');
+  fetch(apiUrl('/api/pdf/price-change-letter'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>{if(!r.ok)throw new Error();return r.blob();})
+    .then(b=>{const u=URL.createObjectURL(b);window.open(u,'_blank');})
+    .catch(()=>toast('Backend not running. Start: npm run dev in /backend','error'));
+};
+
+window.previewPriceLetter=function(){
+  const np=document.getElementById('pcl_price').value||'[NEW PRICE]';
+  const ed=document.getElementById('pcl_date').value||'[DATE]';
+  const sms=DB.get('sms')||[];
+  const company=normalizeCompany(DB.get('company'));
+  modal(`<div class="modal">
+    <div class="modal-title">Letter preview <span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div style="background:var(--color-background-secondary);padding:14px;border-radius:8px;font-size:12px;line-height:1.7">
+      <div style="background:var(--brand);color:#fff;padding:10px;border-radius:6px;margin-bottom:14px;text-align:center">
+        <div style="font-weight:500;font-size:13px">${escapeHtml(company.name)}</div>
+        <div style="font-size:10px;opacity:.8">${escapeHtml(company.tagline)} · ${escapeHtml(company.phone)}</div>
+      </div>
+      <div style="color:var(--color-text-secondary);font-size:11px;margin-bottom:8px">Ref: PCL-XXXXX · Date: ${new Date().toLocaleDateString()}</div>
+      <p style="margin-bottom:8px">To: <strong>[Each active supermarket — ${sms.filter(s=>s.status==='Active').length} letters]</strong></p>
+      <p style="font-weight:500;color:var(--brand);margin:10px 0">SUBJECT: PRICE ADJUSTMENT NOTICE</p>
+      <p style="margin-bottom:8px">Dear Valued Partner,</p>
+      <p style="margin-bottom:8px">We wish to inform you that ${escapeHtml(company.name)} will be adjusting the selling price of our product, effective ${ed}.</p>
+      <div style="background:#fff;padding:10px;border-radius:6px;margin:10px 0;border:0.5px solid var(--color-border-tertiary);font-size:11px">
+        <div>Current price: <strong>ETB ${(DB.get('price')||{perKg:85}).perKg}/KG</strong></div>
+        <div style="color:var(--brand)">New price: <strong>ETB ${np}/KG</strong> (effective ${ed})</div>
+      </div>
+      <p style="margin-bottom:8px">Thank you for your understanding and continued partnership.</p>
+      <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">Sincerely,<br><strong>${escapeHtml(company.name)}</strong><br><span style="color:var(--color-text-secondary);font-size:10px">${escapeHtml([company.phone,company.address].filter(Boolean).join(' | '))}</span></div>
+    </div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">Close preview</button><button class="btn btn-primary" onclick="closeModal();genPriceLetter()">Generate PDF</button></div>
+  </div>`);
+};
+
+PAGES.export=function(){
+  const pc=document.getElementById('pageContent');
+  pc.innerHTML=`
+  <div class="alert alert-info"><span>ℹ</span><span>Excel and CSV files are generated by the backend. Ensure backend is running on port 3001. <code>cd backend && npm run dev</code></span></div>
+  <div style="font-size:13px;font-weight:500;margin-bottom:12px">Excel exports (.xlsx)</div>
+  <div class="export-grid" style="margin-bottom:20px">
+    ${[
+      ['📊','Supermarkets','Full supermarket list with credit usage','supermarkets'],
+      ['🚚','Deliveries','All deliveries with sales and revenue totals','deliveries'],
+      ['💰','Receivables','Aging report with credit status','receivables'],
+    ].map(([ic,t,s,ep])=>`<div class="export-card" onclick="doExport('${ep}','xlsx')">
+      <div class="ec-icon">${ic}</div>
+      <div class="ec-title">${t}</div>
+      <div class="ec-sub">${s}</div>
+      <div style="margin-top:8px"><span class="badge badge-success">⬇ Excel</span></div>
+    </div>`).join('')}
+  </div>
+  <div style="font-size:13px;font-weight:500;margin-bottom:12px">CSV exports (universal)</div>
+  <div class="export-grid">
+    ${[
+      ['📋','Supermarkets CSV','supermarkets'],
+      ['🚚','Deliveries CSV','deliveries'],
+      ['✓','Payments CSV','payments'],
+      ['📦','Inventory log CSV','inventory_transactions'],
+    ].map(([ic,t,tbl])=>`<div class="export-card" onclick="doExport('${tbl}','csv')">
+      <div class="ec-icon">${ic}</div>
+      <div class="ec-title">${t}</div>
+      <div class="ec-sub">Raw data, works in any spreadsheet app</div>
+      <div style="margin-top:8px"><span class="badge badge-info">⬇ CSV</span></div>
+    </div>`).join('')}
+  </div>`;
+};
+
+window.doExport=function(type,format){
+  toast('Exporting '+type+' as '+format.toUpperCase()+'...','info');
+  const url=format==='csv'?apiUrl(`/api/export/csv/${type}`):apiUrl(`/api/export/${type}`);
+  window.open(url,'_blank');
+};
+
+PAGES.reports=function(){
+  const pc=document.getElementById('pageContent');
+  const dels=DB.get('dels')||[];
+  const sms=DB.get('sms')||[];
+  const pays=DB.get('pays')||[];
+  const price=DB.get('price')||{perKg:85};
+  const totalKgSold=dels.reduce((s,d)=>s+(d.sold||0),0);
+  const totalRev=totalKgSold*price.perKg;
+  const totalPaid=pays.reduce((s,p)=>s+p.amount,0);
+  const totalRec=sms.reduce((s,m)=>s+(m.outstanding||0),0);
+  const smSales={};sms.forEach(s=>{smSales[s.id]={name:s.name,sold:0,rev:0};});
+  dels.forEach(d=>{if(smSales[d.smId]){smSales[d.smId].sold+=(d.sold||0);smSales[d.smId].rev+=(d.sold||0)*price.perKg;}});
+  const ranked=Object.values(smSales).sort((a,b)=>b.sold-a.sold);
+  const maxS=ranked[0]?.sold||1;
+  pc.innerHTML=`
+  <div class="card-grid">
+    <div class="metric success"><div class="metric-label">Total revenue</div><div class="metric-value">${fmtE(totalRev)}</div></div>
+    <div class="metric success"><div class="metric-label">Collected</div><div class="metric-value">${fmtE(totalPaid)}</div></div>
+    <div class="metric danger"><div class="metric-label">Outstanding</div><div class="metric-value">${fmtE(totalRec)}</div></div>
+    <div class="metric"><div class="metric-label">Collection rate</div><div class="metric-value">${totalRev>0?Math.round(totalPaid/totalRev*100):0}%</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="section-hdr">Top supermarkets by sales</div>
+      ${ranked.map((s,i)=>`<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+          <span style="font-weight:500">${i+1}. ${s.name}</span>
+          <span style="color:var(--color-text-secondary)">${fmtN(s.sold)} KG · ${fmtE(s.rev)}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(s.sold/maxS*100)}%"></div></div>
+      </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="section-hdr">Dormant supermarkets</div>
+      ${sms.map(sm=>{
+        const smDels=dels.filter(d=>d.smId===sm.id);
+        const lastDel=smDels.length?smDels[smDels.length-1].date:null;
+        const days=lastDel?Math.round((new Date()-new Date(lastDel))/86400000):999;
+        const isDormant=days>30;
+        return`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px">
+          <span>${sm.name}</span>
+          <div style="text-align:right">
+            <span class="badge ${isDormant?'badge-danger':'badge-success'}">${isDormant?'Dormant':'Active'}</span>
+            <div style="font-size:10px;color:var(--color-text-secondary)">${lastDel?fmtDate(lastDel):'Never'}</div>
+          </div>
+        </div>`;}).join('')}
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="section-hdr">Delivery performance
+      <button class="btn btn-sm" onclick="doExport('deliveries','xlsx')">⬇ Export</button>
+    </div>
+    <table><thead><tr><th>FS#</th><th>Supermarket</th><th>Delivered</th><th>Sold</th><th>Sale rate</th><th>Revenue</th><th>Date</th></tr></thead>
+    <tbody>${dels.map(d=>{
+      const rate=d.qty>0?Math.round((d.sold||0)/d.qty*100):0;
+      return`<tr>
+        <td style="font-family:var(--font-mono,monospace);font-size:10px">${d.fs}</td>
+        <td>${d.smName}</td>
+        <td>${fmtN(d.qty)} KG</td>
+        <td>${fmtN(d.sold||0)} KG</td>
+        <td><span class="badge ${rate>=80?'badge-success':rate>=50?'badge-warning':'badge-danger'}">${rate}%</span></td>
+        <td>${fmtE((d.sold||0)*price.perKg)}</td>
+        <td>${fmtDate(d.date)}</td>
+      </tr>`;}).join('')}
+    </tbody></table>
+  </div>`;
+};
+
+nav('dashboard');
+</script>
+</body>
+</html>

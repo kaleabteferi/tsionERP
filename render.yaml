@@ -1,0 +1,66 @@
+services:
+  - type: web
+    name: tsion-erp
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: FRONTEND_URL
+        sync: false
+      - key: FILE_STORAGE_DRIVER
+        value: s3
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: tsion-erp-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: tsion-erp-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: tsion-erp-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: tsion-erp-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: tsion-erp-db
+          property: password
+      - key: COMPANY_NAME
+        sync: false
+      - key: COMPANY_PHONE
+        sync: false
+      - key: COMPANY_ADDRESS
+        sync: false
+      - key: COMPANY_TIN
+        sync: false
+      - key: COMPANY_TAGLINE
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+
+databases:
+  - name: tsion-erp-db
+    databaseName: tsion_erp
+    user: tsion_erp

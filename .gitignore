@@ -1,0 +1,10 @@
+backend/node_modules/
+node_modules/
+backend/.env
+backend/generated_pdfs/
+backend/uploads/
+*.log
+npm-debug.log*
+receivables-test.xlsx
+.DS_Store
+Thumbs.db

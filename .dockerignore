@@ -1,0 +1,11 @@
+node_modules
+backend/node_modules
+.git
+.gitignore
+backend/.env
+backend/generated_pdfs
+backend/uploads
+npm-debug.log*
+Dockerfile*
+render.yaml
+railway.json
