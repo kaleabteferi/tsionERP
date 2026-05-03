@@ -777,42 +777,41 @@ function openPrintableDoc(title,bodyHtml){
   <style>
     @page{size:A4;margin:12mm}
     *{box-sizing:border-box}
-    :root{--brand-maroon:#7b3538;--brand-maroon-dark:#5f2528;--brand-brown:#8a4d32;--brand-cream:#f8f1e8;--brand-ink:#2f2a28;--brand-muted:#6f6662;--brand-gold:#c9934f;--brand-green:#3d7a4b}
-    body{font-family:'Segoe UI',Arial,sans-serif;color:var(--brand-ink);margin:0;background:#ece7df}
-    .sheet{max-width:860px;margin:18px auto;background:#fff;padding:24px;border:1px solid #dfd7cb;position:relative;overflow:hidden}
-    .sheet::before{content:'';position:absolute;inset:0 auto auto 0;height:9px;width:100%;background:linear-gradient(90deg,var(--brand-maroon) 0%,var(--brand-brown) 55%,var(--brand-gold) 100%)}
-    .sheet::after{content:'';position:absolute;right:10px;top:14px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle,rgba(123,53,56,.11) 0%,rgba(123,53,56,0) 72%);pointer-events:none}
-    .grain-band{margin:0 -24px 14px;padding:10px 24px;background:linear-gradient(180deg,#8a4d32 0%,#7b3538 65%,#692b2e 100%);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px}
-    .grain-band-title{font-size:18px;font-weight:900;letter-spacing:.02em}
-    .grain-band-sub{font-size:11px;opacity:.9}
-    .trust-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .trust-chip{font-size:10px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);font-weight:700;letter-spacing:.04em}
+    :root{--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--line-soft:#f1f5f9;--accent:#0f766e;--accent-soft:#ecfdf5;--paper:#ffffff}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:var(--ink);margin:0;background:#f3f4f6}
+    .sheet{max-width:860px;margin:18px auto;background:var(--paper);padding:26px;border:1px solid var(--line);position:relative}
+    .sheet::before{content:'';position:absolute;left:0;top:0;width:100%;height:4px;background:var(--accent)}
     .doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;padding-top:4px}
     .brand{display:flex;gap:10px;align-items:center}
-    .brand-badge{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,var(--brand-maroon) 0%,var(--brand-maroon-dark) 100%);color:#fff;font-weight:900}
-    .brand-title{font-size:19px;font-weight:900;letter-spacing:.03em;color:var(--brand-maroon-dark);margin:0}
-    .brand-sub{font-size:11px;color:var(--brand-muted);line-height:1.35}
-    .status{display:inline-block;padding:4px 9px;border-radius:999px;background:var(--brand-green);color:#fff;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
-    .meta{font-size:11px;color:var(--brand-muted);line-height:1.4;text-align:right}
-    .doc-title{margin:0 0 12px;text-align:center;font-size:21px;font-weight:900;letter-spacing:.03em;text-decoration:underline;text-decoration-color:#d4af37;text-underline-offset:8px}
-    .highlight{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:12px 14px;border-left:4px solid var(--brand-gold);background:linear-gradient(180deg,var(--brand-cream) 0%,#fff 100%);border-radius:0 12px 12px 0;margin-bottom:12px}
-    .highlight-label{font-size:10px;color:var(--brand-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:800}
-    .highlight-value{font-size:24px;color:var(--brand-maroon-dark);font-weight:900;line-height:1.1;text-align:right}
+    .brand-badge{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-weight:800}
+    .brand-title{font-size:18px;font-weight:800;letter-spacing:.01em;color:var(--ink);margin:0}
+    .brand-sub{font-size:11px;color:var(--muted);line-height:1.35}
+    .status{display:inline-block;padding:4px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);border:1px solid #a7f3d0;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+    .meta{font-size:11px;color:var(--muted);line-height:1.5;text-align:right}
+    .doc-title{margin:0 0 10px;font-size:26px;font-weight:800;letter-spacing:.01em}
+    .highlight{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:12px 14px;border:1px solid #d1fae5;background:var(--accent-soft);border-radius:10px;margin-bottom:14px}
+    .highlight-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+    .highlight-value{font-size:24px;color:var(--ink);font-weight:800;line-height:1.1;text-align:right}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-    .card{border:1px solid #ede4d8;background:#fcfaf6;border-radius:12px;padding:10px}
-    .label{font-size:10px;color:var(--brand-muted);text-transform:uppercase;letter-spacing:.07em}
-    .value{font-size:14px;font-weight:800;margin-top:4px;color:var(--brand-ink)}
-    .copy{font-size:12px;line-height:1.65;color:#3a322f;margin-top:10px}
-    .line-items{margin-top:10px;border:1px solid #e7ddd0;border-radius:12px;overflow:hidden}
+    .card{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px}
+    .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+    .value{font-size:14px;font-weight:700;margin-top:4px;color:var(--ink)}
+    .copy{font-size:12px;line-height:1.65;color:#374151;margin-top:10px}
+    .line-items{margin-top:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
     .line-items table{width:100%;border-collapse:collapse;font-size:11px}
-    .line-items th{background:#f3ebdf;color:#5c504a;text-transform:uppercase;letter-spacing:.07em;font-size:10px;text-align:left;padding:8px 9px}
-    .line-items td{border-top:1px solid #efe5d8;padding:8px 9px}
-    .line-items tfoot td{background:#faf4eb;font-weight:800;color:#4a3f3a}
-    .signature{margin-top:18px;padding-top:10px;border-top:1px solid #ece1d3;font-size:11px;color:var(--brand-muted);display:flex;justify-content:space-between;gap:14px}
-    .signature .line{margin-top:14px;border-top:1px solid #c9cec8;padding-top:5px;min-width:220px}
-    .footer{margin-top:16px;padding-top:10px;border-top:1px solid #ece1d3;font-size:10px;color:#7a6f69;display:flex;justify-content:space-between;gap:12px}
-    .wm{position:absolute;right:18px;bottom:14px;font-size:98px;color:rgba(123,53,56,.05);font-weight:900;pointer-events:none;line-height:1}
-    @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:18px}.grain-band{margin:0 -18px 14px;padding:10px 18px}.no-print{display:none}}
+    .line-items th{background:var(--line-soft);color:#4b5563;text-transform:uppercase;letter-spacing:.07em;font-size:10px;text-align:left;padding:9px 10px}
+    .line-items td{border-top:1px solid var(--line);padding:9px 10px}
+    .line-items tfoot td{background:#fafafa;font-weight:800;color:var(--ink)}
+    .totals{margin-top:12px;display:flex;justify-content:flex-end}
+    .totals-card{width:280px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+    .totals-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;color:#374151}
+    .totals-row + .totals-row{border-top:1px solid var(--line)}
+    .totals-row.grand{font-size:14px;font-weight:800;color:var(--ink)}
+    .signature{margin-top:18px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:14px}
+    .signature .line{margin-top:14px;border-top:1px solid #cbd5e1;padding-top:5px;min-width:220px}
+    .footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
+    .wm{position:absolute;right:18px;bottom:12px;font-size:92px;color:rgba(15,23,42,.04);font-weight:900;pointer-events:none;line-height:1}
+    @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:18px}.no-print{display:none}}
   </style></head><body><div class="sheet">${bodyHtml}</div>
   <div class="no-print" style="text-align:center;padding:8px"><button onclick="window.print()">Print / Save as PDF</button></div></body></html>`;
   win.document.open();
@@ -854,51 +853,50 @@ function buildSalesReceiptBody(delivery,opts={}){
   const company=normalizeCompany(DB.get('company'));
   const price=(DB.get('price')||{perKg:85}).perKg||85;
   const adjustKg=Number(opts.adjustKg||0);
-  const sold=Math.max(0,Number(delivery.qty||0)+adjustKg);
-  const value=sold*price;
+  const soldFallback=Math.max(0,Number(delivery.qty||0)+adjustKg);
   const fsNo=opts.fsNo||delivery.fs;
   const docDate=opts.docDate||delivery.date;
   const attachment=!!opts.attachment;
   const lines=(opts.productLines||[]).filter(line=>line&&line.name&&Number(line.qty)>0);
-  const effectiveLines=lines.length?lines:[{name:'Tsion Parboiled Brown Rice',qty:sold}];
+  const effectiveLines=lines.length?lines:[{name:'Tsion Parboiled Brown Rice',qty:soldFallback}];
+  const sold=effectiveLines.reduce((sum,line)=>sum+Number(line.qty||0),0);
+  const subTotal=effectiveLines.reduce((sum,line)=>sum+(Number(line.qty||0)*price),0);
+  const tax=0;
+  const value=subTotal+tax;
   const linesHtml=effectiveLines.map(line=>{
     const qty=Number(line.qty||0);
     const amount=qty*price;
     return `<tr><td>${escapeHtml(line.name)}</td><td>${fmtN(qty)} KG</td><td>${fmtE(price)}</td><td>${fmtE(amount)}</td></tr>`;
   }).join('');
+  const docType=attachment?'PROFORMA INVOICE':'SALES INVOICE';
   return `
-    <div class="grain-band">
-      <div>
-        <div class="grain-band-title">Tsion Parboiled Brown Rice</div>
-        <div class="grain-band-sub">Premium Ethiopian whole grain distribution receipt</div>
-      </div>
-      <div class="trust-row">
-        <span class="trust-chip">100% NATURAL</span>
-        <span class="trust-chip">HEALTHY</span>
-        <span class="trust-chip">GLUTEN FREE</span>
-      </div>
-    </div>
     <div class="doc-head">
-      <div class="brand"><div class="brand-badge">SR</div><div><h1 class="brand-title">${escapeHtml(company.name).toUpperCase()}</h1><div class="brand-sub">Sales settlement receipt<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
-      <div><div class="status">${attachment?'Attachment':'Settlement'}</div><div class="meta">Ref: SR-${escapeHtml(fsNo)}<br>Date: ${escapeHtml(fmtDate(docDate))}</div></div>
+      <div class="brand"><div class="brand-badge">TS</div><div><h1 class="brand-title">${escapeHtml(company.name)}</h1><div class="brand-sub">Premium food distribution<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
+      <div><div class="status">${docType}</div><div class="meta">Invoice #: SR-${escapeHtml(fsNo)}<br>Issue Date: ${escapeHtml(fmtDate(docDate))}<br>Currency: ETB</div></div>
     </div>
-    <h2 class="doc-title">${attachment?'SALES RECEIPT ATTACHMENT':'SALES RECEIPT'}</h2>
-    <div class="highlight"><div><div class="highlight-label">Final Sold Quantity</div><div class="copy" style="margin-top:4px">Default assumes delivered quantity is sold, with optional adjustment.</div></div><div class="highlight-value">${fmtN(sold)} KG</div></div>
+    <h2 class="doc-title">${attachment?'Proforma Invoice':'Sales Receipt / Invoice'}</h2>
+    <div class="highlight"><div><div class="highlight-label">Bill To</div><div class="copy" style="margin-top:4px;font-size:13px;font-weight:700;color:var(--ink)">${escapeHtml(delivery.smName)}</div><div class="copy" style="margin-top:2px">Reference Delivery: ${escapeHtml(delivery.fs)}</div></div><div class="highlight-value">${fmtN(sold)} KG</div></div>
     <div class="grid">
-      <div class="card"><div class="label">Supermarket</div><div class="value">${escapeHtml(delivery.smName)}</div></div>
-      <div class="card"><div class="label">Receipt FS#</div><div class="value">${escapeHtml(fsNo)}</div></div>
-      <div class="card"><div class="label">Price</div><div class="value">ETB ${fmtN(price)} / KG</div></div>
-      <div class="card"><div class="label">Estimated Value</div><div class="value">${fmtE(value)}</div></div>
+      <div class="card"><div class="label">Reference FS#</div><div class="value">${escapeHtml(fsNo)}</div></div>
+      <div class="card"><div class="label">Delivery Date</div><div class="value">${escapeHtml(fmtDate(delivery.date))}</div></div>
+      <div class="card"><div class="label">Quantity Summary</div><div class="value">${fmtN(sold)} KG</div></div>
+      <div class="card"><div class="label">Unit Price</div><div class="value">${fmtE(price)}</div></div>
     </div>
     <div class="line-items">
       <table>
         <thead><tr><th>Product</th><th>Quantity</th><th>Unit Price</th><th>Amount</th></tr></thead>
         <tbody>${linesHtml}</tbody>
-        <tfoot><tr><td colspan="3">Total</td><td>${fmtE(value)}</td></tr></tfoot>
+        <tfoot><tr><td colspan="3">Line Total</td><td>${fmtE(subTotal)}</td></tr></tfoot>
       </table>
     </div>
+    <div class="totals"><div class="totals-card">
+      <div class="totals-row"><span>Subtotal</span><strong>${fmtE(subTotal)}</strong></div>
+      <div class="totals-row"><span>Tax</span><strong>${fmtE(tax)}</strong></div>
+      <div class="totals-row grand"><span>Total Due</span><strong>${fmtE(value)}</strong></div>
+    </div></div>
     <div class="copy">Adjustment: ${fmtN(adjustKg)} KG${opts.adjustNote?` | Note: ${escapeHtml(opts.adjustNote)}`:''}</div>
-    <div class="footer"><div>Ledger-linked finance document</div><div>Page 1 of 1</div></div>
+    <div class="signature"><div><div class="line">Prepared By</div></div><div><div class="line">Authorized Signature</div></div></div>
+    <div class="footer"><div>Thank you for your partnership.</div><div>Page 1 of 1</div></div>
     <div class="wm">${attachment?'ATT':'SR'}</div>`;
 }
 
