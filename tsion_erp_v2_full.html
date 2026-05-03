@@ -415,7 +415,10 @@ const DEFAULT_COMPANY={
 
 const DB={
   get(k){try{return JSON.parse(localStorage.getItem('tsion2_'+k))||null}catch{return null}},
-  set(k,v){localStorage.setItem('tsion2_'+k,JSON.stringify(v))},
+  set(k,v){
+    localStorage.setItem('tsion2_'+k,JSON.stringify(v));
+    if(globalThis.__tsionEnableCloudSyncWrites) scheduleFirestoreSave();
+  },
   init(){
     if(!this.get('sms'))this.set('sms',[
       {id:'SM001',code:'SM001',name:'Shoa Supermarket',branch:'Main Branch',tin:'R00123456',contact:'Abebe Girma',phone:'+251911234567',email:'shoa@example.com',address:'Bole Road, Addis Ababa',lat:9.0227,lng:38.7882,creditLimit:50000,outstanding:12500,status:'Active'},
@@ -450,9 +453,119 @@ DB.init();
 const API_BASE=window.location.origin;
 const LIVE_API_ENABLED=(new URLSearchParams(window.location.search).get('api')==='1')||window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1';
 const LIVE_STATE={syncPromise:null,lastSync:0};
+globalThis.__tsionEnableCloudSyncWrites=true;
+
+const FIRESTORE_STATE={
+  initPromise:null,
+  enabled:false,
+  db:null,
+  saveTimer:null,
+  suspendWrites:false,
+  lastLoaded:0
+};
 
 function apiUrl(path){return API_BASE+path;}
 function toNum(v){return Number(v||0);}
+
+function loadExternalScript(src){
+  return new Promise((resolve,reject)=>{
+    const existing=document.querySelector(`script[src="${src}"]`);
+    if(existing){
+      if(existing.dataset.loaded==='1') return resolve();
+      existing.addEventListener('load',()=>resolve(),{once:true});
+      existing.addEventListener('error',()=>reject(new Error(`Failed to load ${src}`)),{once:true});
+      return;
+    }
+    const script=document.createElement('script');
+    script.src=src;
+    script.async=true;
+    script.onload=()=>{script.dataset.loaded='1'; resolve();};
+    script.onerror=()=>reject(new Error(`Failed to load ${src}`));
+    document.head.appendChild(script);
+  });
+}
+
+function snapshotForCloud(){
+  return {
+    sms:DB.get('sms')||[],
+    dels:DB.get('dels')||[],
+    pays:DB.get('pays')||[],
+    inv:DB.get('inv')||{},
+    price:DB.get('price')||{},
+    company:DB.get('company')||DEFAULT_COMPANY
+  };
+}
+
+function applyCloudSnapshot(snapshot){
+  if(!snapshot) return;
+  FIRESTORE_STATE.suspendWrites=true;
+  try{
+    if(snapshot.sms) DB.set('sms',snapshot.sms);
+    if(snapshot.dels) DB.set('dels',snapshot.dels);
+    if(snapshot.pays) DB.set('pays',snapshot.pays);
+    if(snapshot.inv) DB.set('inv',snapshot.inv);
+    if(snapshot.price) DB.set('price',snapshot.price);
+    if(snapshot.company) DB.set('company',snapshot.company);
+  }finally{
+    FIRESTORE_STATE.suspendWrites=false;
+  }
+}
+
+async function initFirestoreSync(){
+  if(LIVE_API_ENABLED) return false;
+  if(FIRESTORE_STATE.initPromise) return FIRESTORE_STATE.initPromise;
+  FIRESTORE_STATE.initPromise=(async()=>{
+    try{
+      const initRes=await fetch('/__/firebase/init.json',{cache:'no-store'});
+      if(!initRes.ok) throw new Error('Firebase Hosting config not found');
+      const firebaseConfig=await initRes.json();
+      await loadExternalScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js');
+      await loadExternalScript('https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js');
+      if(!window.firebase?.apps?.length) window.firebase.initializeApp(firebaseConfig);
+      FIRESTORE_STATE.db=window.firebase.firestore();
+      FIRESTORE_STATE.enabled=true;
+      updateConnectivityUI();
+      return true;
+    }catch(err){
+      console.warn('Firestore sync unavailable, using local storage only:',err?.message||err);
+      FIRESTORE_STATE.enabled=false;
+      updateConnectivityUI();
+      return false;
+    }
+  })();
+  return FIRESTORE_STATE.initPromise;
+}
+
+async function loadFirestoreSnapshot(force=false){
+  const ok=await initFirestoreSync();
+  if(!ok||!FIRESTORE_STATE.enabled||!FIRESTORE_STATE.db) return false;
+  if(!force&&Date.now()-FIRESTORE_STATE.lastLoaded<5000) return true;
+  const docRef=FIRESTORE_STATE.db.collection('erp').doc('main');
+  const snap=await docRef.get();
+  if(snap.exists){
+    applyCloudSnapshot(snap.data()||{});
+  }else{
+    await docRef.set({...snapshotForCloud(),updatedAt:window.firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  }
+  FIRESTORE_STATE.lastLoaded=Date.now();
+  return true;
+}
+
+async function saveFirestoreSnapshot(){
+  if(FIRESTORE_STATE.suspendWrites) return;
+  const ok=await initFirestoreSync();
+  if(!ok||!FIRESTORE_STATE.enabled||!FIRESTORE_STATE.db) return;
+  const docRef=FIRESTORE_STATE.db.collection('erp').doc('main');
+  await docRef.set({...snapshotForCloud(),updatedAt:window.firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+}
+
+function scheduleFirestoreSave(){
+  if(LIVE_API_ENABLED||FIRESTORE_STATE.suspendWrites) return;
+  clearTimeout(FIRESTORE_STATE.saveTimer);
+  FIRESTORE_STATE.saveTimer=setTimeout(()=>{
+    saveFirestoreSnapshot().catch(err=>console.warn('Failed to save Firestore snapshot:',err?.message||err));
+  },300);
+}
 
 function newId(prefix='id'){return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;}
 
@@ -720,6 +833,13 @@ function normalizeCompany(company){
 async function syncLiveData(force=false){
   if(LIVE_STATE.syncPromise&&!force)return LIVE_STATE.syncPromise;
   if(!force&&Date.now()-LIVE_STATE.lastSync<10000)return;
+  if(!LIVE_API_ENABLED){
+    LIVE_STATE.syncPromise=(async()=>{
+      await loadFirestoreSnapshot(force).catch(()=>{});
+      LIVE_STATE.lastSync=Date.now();
+    })().finally(()=>{LIVE_STATE.syncPromise=null;});
+    return LIVE_STATE.syncPromise;
+  }
   LIVE_STATE.syncPromise=(async()=>{
     const [sms,dels,pays,inv,price,txns,company]=await Promise.all([
       apiFetch('/api/supermarkets'),
@@ -1070,9 +1190,19 @@ function updateConnectivityUI(){
   const localBanner=document.getElementById('localBanner');
   const chip=document.getElementById('statusChip');
   if(banner) banner.hidden=!offline;
-  if(localBanner) localBanner.hidden=LIVE_API_ENABLED;
+  if(localBanner){
+    if(LIVE_API_ENABLED){
+      localBanner.hidden=true;
+    }else if(FIRESTORE_STATE.enabled){
+      localBanner.hidden=false;
+      localBanner.textContent='Cloud mode: data is synced with Firestore for this Firebase project.';
+    }else{
+      localBanner.hidden=false;
+      localBanner.textContent='Local mode: this hosted version runs without backend/cloud sync and stores data in this browser only.';
+    }
+  }
   if(chip){
-    chip.textContent=LIVE_API_ENABLED?(offline?'Offline':'Live'):'Local Only';
+    chip.textContent=LIVE_API_ENABLED?(offline?'Offline':'Live'):(FIRESTORE_STATE.enabled?'Cloud':'Local Only');
     chip.classList.toggle('offline',offline);
   }
 }
