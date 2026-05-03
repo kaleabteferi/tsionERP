@@ -1,10 +1,11 @@
 # Tsion ERP Deployment
 
-This repo is ready for two practical deployment paths:
+This repo is ready for practical deployment paths:
 
 1. Render + Render Postgres + Cloudflare R2
 2. Railway + Railway Postgres + AWS S3
 3. Oracle Cloud Free Tier VM + Docker Compose
+4. Firebase Hosting + Cloud Functions + Firestore + Storage
 
 ## Option 1: Render + R2
 
@@ -131,7 +132,6 @@ cd tsionERP
 ```bash
 cp backend/.env.oracle-free.example backend/.env
 nano backend/.env
-4. Firebase Hosting + Cloud Functions + Firestore + Firebase Storage
 ```
 
 At minimum set:
@@ -213,10 +213,27 @@ docker compose restart app
 2. Docker volumes keep your database and uploaded/generated files across restarts.
 3. This is a better free fit for this app than static hosts because the backend and database stay together.
 
+## Option 4: Firebase Hosting + Functions + Firestore
+
+Use this dedicated runbook for exact commands:
+
+- `FIREBASE_DEPLOY.md`
+
+Key files:
+
+- `firebase.json`
+- `.firebaserc.example`
+- `functions/.env.example`
+- `functions/scripts/seed-firestore.js`
+
 ## What Must Exist Before Go-Live
 
-1. A PostgreSQL database with schema applied.
-2. Either an object storage bucket or a server with persistent local disk for uploads, PDFs, and Excel exports.
+1. A configured data backend:
+   - PostgreSQL with schema applied for Node/Express deployments, or
+   - Firestore for Firebase deployments.
+2. A configured file backend:
+   - object storage (S3/Firebase Storage), or
+   - persistent local disk where applicable.
 3. A Google Maps API key if you want map features enabled.
 4. Real company details in env vars.
 
