@@ -5,7 +5,7 @@ This repo is ready for practical deployment paths:
 1. Render + Render Postgres + Cloudflare R2
 2. Railway + Railway Postgres + AWS S3
 3. Oracle Cloud Free Tier VM + Docker Compose
-4. Firebase Hosting + Cloud Functions + Firestore + Storage
+4. Firebase Hosting only (local browser data mode)
 
 ## Option 1: Render + R2
 
@@ -213,42 +213,56 @@ docker compose restart app
 2. Docker volumes keep your database and uploaded/generated files across restarts.
 3. This is a better free fit for this app than static hosts because the backend and database stay together.
 
-## Option 4: Firebase Hosting + Functions + Firestore
-
-Use this dedicated runbook for exact commands:
-
-- `FIREBASE_DEPLOY.md`
+## Option 4: Firebase Hosting only
 
 Key files:
 
 - `firebase.json`
 - `.firebaserc.example`
-- `functions/.env.example`
-- `functions/scripts/seed-firestore.js`
+- `index.html`
+- `tsion_erp_v2_full.html`
+
+Behavior in this mode:
+
+- The app runs without backend services.
+- Data is stored in the browser localStorage for each device/browser.
+- PDF/export/upload endpoints are disabled and show a clear message in the UI.
+
+Deploy commands:
+
+```bash
+firebase use <your-project-id>
+firebase deploy --only hosting
+```
 
 ## What Must Exist Before Go-Live
 
 1. A configured data backend:
    - PostgreSQL with schema applied for Node/Express deployments, or
-   - Firestore for Firebase deployments.
+   - browser localStorage for Firebase Hosting-only deployments.
 2. A configured file backend:
-   - object storage (S3/Firebase Storage), or
+   - object storage (S3) for backend deployments, or
    - persistent local disk where applicable.
 3. A Google Maps API key if you want map features enabled.
 4. Real company details in env vars.
 
 ## Post-Deploy Smoke Test
 
-Check these routes after deployment:
+For backend deployments, check these routes:
 - /api/health
 - /api/supermarkets
 - /api/inventory/summary
 - /api/uploads/attachments
 
+For Firebase Hosting-only deployments, open the app URL and verify the status chip shows Local.
+
 Then test these actions in the UI:
 - Add a supermarket
 - Add stock
 - Create a delivery
+- Record a payment
+
+For backend deployments only, also test:
 - Upload an attachment
 - Generate a receipt PDF
 - Export receivables

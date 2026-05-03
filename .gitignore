@@ -5,6 +5,7 @@ backend/generated_pdfs/
 backend/uploads/
 .firebaserc
 functions/.env
+.firebase/
 *.log
 npm-debug.log*
 receivables-test.xlsx
