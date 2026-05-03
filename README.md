@@ -34,6 +34,7 @@ npm run db:seed    # Adds sample data (supermarkets, deliveries, etc.)
 
 ### 3. Start backend
 
+
 ```bash
 npm run dev
 # API runs on http://localhost:3001
@@ -296,6 +297,7 @@ Host-specific ready-to-fill templates are included here:
 
 - `backend/.env.render-r2.example`
 - `backend/.env.railway-s3.example`
+- `backend/.env.oracle-free.example`
 - `DEPLOYMENT.md`
 
 ### Security Notes

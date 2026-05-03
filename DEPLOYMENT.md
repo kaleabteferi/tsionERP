@@ -4,6 +4,7 @@ This repo is ready for two practical deployment paths:
 
 1. Render + Render Postgres + Cloudflare R2
 2. Railway + Railway Postgres + AWS S3
+3. Oracle Cloud Free Tier VM + Docker Compose
 
 ## Option 1: Render + R2
 
@@ -57,10 +58,165 @@ Recommended Railway values:
 - S3_FORCE_PATH_STYLE=false
 - FRONTEND_URL=https://your-app.up.railway.app
 
+## Option 3: Oracle Cloud Free Tier VM
+
+Files to use:
+- docker-compose.yml
+- Dockerfile
+- backend/.env.oracle-free.example
+
+Why this option fits this app:
+- one always-free VM can run both the Node app and PostgreSQL
+- local Docker volumes can persist uploads and generated PDFs
+- no separate S3 service is required unless you want off-server backups
+
+Recommended VM shape:
+- Oracle Cloud Always Free Ampere A1
+- Ubuntu 22.04 or 24.04
+- 1 to 2 OCPU
+- 6 to 12 GB RAM if available in your tenancy
+
+### Step 1: Create the VM
+
+1. Create an Oracle Cloud account.
+2. Create a Compute instance using an Always Free eligible shape.
+3. Choose Ubuntu.
+4. Assign a public IPv4 address.
+5. Save your SSH private key locally.
+
+### Step 2: Open the Required Ports
+
+In Oracle Cloud networking for that instance, allow inbound:
+- TCP 22 for SSH
+- TCP 3001 for the app
+
+If you later put Nginx in front, also allow:
+- TCP 80
+- TCP 443
+
+### Step 3: SSH Into the VM
+
+From your local machine:
+
+```bash
+ssh -i /path/to/your-key.pem ubuntu@YOUR_ORACLE_PUBLIC_IP
+```
+
+### Step 4: Install Docker and Docker Compose
+
+On the Oracle VM:
+
+```bash
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin git
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### Step 5: Pull the App From GitHub
+
+```bash
+git clone https://github.com/kaleabteferi/tsionERP.git
+cd tsionERP
+```
+
+### Step 6: Create the Production Env File
+
+```bash
+cp backend/.env.oracle-free.example backend/.env
+nano backend/.env
+4. Firebase Hosting + Cloud Functions + Firestore + Firebase Storage
+```
+
+At minimum set:
+- `DB_PASSWORD`
+- `FRONTEND_URL=http://YOUR_ORACLE_PUBLIC_IP:3001`
+- `GOOGLE_MAPS_API_KEY`
+- company info values
+
+Keep these values for Oracle local hosting:
+- `FILE_STORAGE_DRIVER=local`
+- `NODE_ENV=production`
+
+### Step 7: Start the Stack
+
+From the repo root on the VM:
+
+```bash
+docker compose up -d --build
+```
+
+This starts:
+- the Node app on port 3001
+- PostgreSQL on port 5432
+- persistent Docker volumes for database, uploads, and generated PDFs
+
+### Step 8: Apply the Database Schema
+
+```bash
+docker compose exec app node backend/db/setup.js
+```
+
+### Step 9: Verify the Deployment
+
+```bash
+curl http://YOUR_ORACLE_PUBLIC_IP:3001/api/health
+```
+
+You should get a JSON response with `status: ok`.
+
+Your public app URL will be:
+
+```text
+http://YOUR_ORACLE_PUBLIC_IP:3001
+```
+
+### Optional Step 10: Add a Domain and HTTPS
+
+If you want a cleaner link for phone and PC use:
+
+1. Point a domain or subdomain to your Oracle VM public IP.
+2. Install Nginx or Caddy on the VM.
+3. Reverse proxy to `localhost:3001`.
+4. Enable HTTPS with Let's Encrypt.
+
+Without this step, the app still works over plain HTTP using the Oracle public IP.
+
+### Update Workflow
+
+When you push new code to GitHub:
+
+```bash
+cd ~/tsionERP
+git pull
+docker compose up -d --build
+```
+
+### Useful Maintenance Commands
+
+```bash
+docker compose ps
+docker compose logs -f app
+docker compose logs -f db
+docker compose restart app
+```
+
+### Oracle Notes
+
+1. If port 3001 does not open publicly, check both Oracle security lists and the VM firewall.
+2. Docker volumes keep your database and uploaded/generated files across restarts.
+3. This is a better free fit for this app than static hosts because the backend and database stay together.
+
 ## What Must Exist Before Go-Live
 
 1. A PostgreSQL database with schema applied.
-2. An object storage bucket for uploads, PDFs, and Excel exports.
+2. Either an object storage bucket or a server with persistent local disk for uploads, PDFs, and Excel exports.
 3. A Google Maps API key if you want map features enabled.
 4. Real company details in env vars.
 
