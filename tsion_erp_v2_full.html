@@ -2945,7 +2945,7 @@ PAGES.documents=function(){
   document.getElementById('pdfPreviewSecondary')?.addEventListener('click',()=>{
     const selectedDelivery=getSelectedDelivery();
     if(previewType==='price'){previewPriceLetter();return;}
-    if(previewType==='order'){previewType='delivery';renderPreview();return;}
+    if(previewType==='order'){genDeliveryOrderForm();return;}
     if(!selectedDelivery){toast('No delivery selected','error');return;}
     if(previewType==='delivery'){
       previewType='receipt';
@@ -3028,6 +3028,7 @@ window.genDeliveryOrderForm=function(){
   };
   if(!LIVE_API_ENABLED){
     openPrintableDoc('Delivery Order',buildDeliveryOrderBody(body));
+    toast('Delivery order opened in printable view','success');
     return;
   }
   toast('Generating delivery order...','info');
