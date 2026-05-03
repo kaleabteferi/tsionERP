@@ -3,6 +3,8 @@ node_modules/
 backend/.env
 backend/generated_pdfs/
 backend/uploads/
+.firebaserc
+functions/.env
 *.log
 npm-debug.log*
 receivables-test.xlsx

@@ -14,6 +14,11 @@ This is the exact command flow to deploy this repo to Firebase Hosting + Functio
    - Hosting
    - Cloud Functions
 
+Important:
+- Cloud Functions deployment requires Firebase Blaze (pay-as-you-go) plan.
+- Upgrade at: `https://console.firebase.google.com/project/<your-project-id>/usage/details`
+- Open Firebase Storage in console once and click `Get Started` to initialize the bucket before deploying Storage rules.
+
 ## 2. Install Tools (One Time)
 
 ```bash
@@ -98,6 +103,12 @@ From repo root:
 firebase use <your-project-id>
 firebase deploy --only firestore:rules,storage,functions,hosting
 ```
+
+If Storage is not initialized yet, first open:
+
+`https://console.firebase.google.com/project/<your-project-id>/storage`
+
+Click `Get Started`, choose a location, then re-run deploy.
 
 ## 8. Verify
 
