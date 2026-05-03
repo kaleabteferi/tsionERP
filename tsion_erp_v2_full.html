@@ -775,22 +775,33 @@ function openPrintableDoc(title,bodyHtml){
   }
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title>
   <style>
-    @page{size:A4;margin:14mm}
-    body{font-family:'Segoe UI',Arial,sans-serif;color:#111;margin:0;background:#f2f2f2}
-    .sheet{max-width:820px;margin:18px auto;background:#fff;padding:24px;border:1px solid #ddd}
-    h1{margin:0 0 6px;font-size:22px}
-    h2{margin:0 0 12px;font-size:14px;color:#444;font-weight:600}
-    .meta{font-size:12px;color:#555;margin-bottom:12px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-    .card{border:1px solid #ddd;padding:10px;border-radius:6px}
-    .label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.06em}
-    .value{font-size:14px;font-weight:700;margin-top:3px}
-    .note{font-size:12px;line-height:1.6;color:#333;margin-top:10px}
-    .footer{margin-top:20px;padding-top:10px;border-top:1px solid #ddd;font-size:11px;color:#666}
-    .wm{position:absolute;right:20px;bottom:18px;font-size:54px;color:rgba(0,0,0,.06);font-weight:800}
-    .sheet-wrap{position:relative}
-    @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:0}.no-print{display:none}}
-  </style></head><body><div class="sheet-wrap"><div class="sheet">${bodyHtml}</div></div>
+    @page{size:A4;margin:12mm}
+    *{box-sizing:border-box}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#1f241f;margin:0;background:#eeecea}
+    .sheet{max-width:860px;margin:18px auto;background:#fff;padding:24px;border:1px solid #dfdbd2;position:relative;overflow:hidden}
+    .sheet::before{content:'';position:absolute;inset:0 auto auto 0;height:7px;width:100%;background:linear-gradient(90deg,#2d5a27 0%,#d4af37 100%)}
+    .doc-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px;padding-top:4px}
+    .brand{display:flex;gap:10px;align-items:center}
+    .brand-badge{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:#d4af37;color:#fff;font-weight:900}
+    .brand-title{font-size:19px;font-weight:900;letter-spacing:.03em;color:#2d5a27;margin:0}
+    .brand-sub{font-size:11px;color:#64716b;line-height:1.35}
+    .status{display:inline-block;padding:4px 9px;border-radius:999px;background:#2d5a27;color:#fff;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+    .meta{font-size:11px;color:#5f6762;line-height:1.4;text-align:right}
+    .doc-title{margin:0 0 12px;text-align:center;font-size:21px;font-weight:900;letter-spacing:.03em;text-decoration:underline;text-decoration-color:#d4af37;text-underline-offset:8px}
+    .highlight{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:12px 14px;border-left:4px solid #d4af37;background:#f7f8f3;border-radius:0 12px 12px 0;margin-bottom:12px}
+    .highlight-label{font-size:10px;color:#69726b;text-transform:uppercase;letter-spacing:.08em;font-weight:800}
+    .highlight-value{font-size:24px;color:#2d5a27;font-weight:900;line-height:1.1;text-align:right}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+    .card{border:1px solid #ece8df;background:#faf9f6;border-radius:12px;padding:10px}
+    .label{font-size:10px;color:#7a7f77;text-transform:uppercase;letter-spacing:.07em}
+    .value{font-size:14px;font-weight:800;margin-top:4px;color:#1f241f}
+    .copy{font-size:12px;line-height:1.65;color:#2f3a33;margin-top:10px}
+    .signature{margin-top:18px;padding-top:10px;border-top:1px solid #ece8df;font-size:11px;color:#64716b;display:flex;justify-content:space-between;gap:14px}
+    .signature .line{margin-top:14px;border-top:1px solid #c9cec8;padding-top:5px;min-width:220px}
+    .footer{margin-top:16px;padding-top:10px;border-top:1px solid #ece8df;font-size:10px;color:#77807a;display:flex;justify-content:space-between;gap:12px}
+    .wm{position:absolute;right:18px;bottom:14px;font-size:98px;color:rgba(45,90,39,.05);font-weight:900;pointer-events:none;line-height:1}
+    @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:18px}.no-print{display:none}}
+  </style></head><body><div class="sheet">${bodyHtml}</div>
   <div class="no-print" style="text-align:center;padding:8px"><button onclick="window.print()">Print / Save as PDF</button></div></body></html>`;
   win.document.open();
   win.document.write(html);
@@ -809,17 +820,21 @@ function buildDeliveryNoteBody(delivery){
   const company=normalizeCompany(DB.get('company'));
   const balance=(delivery.qty||0)-(delivery.sold||0)-(delivery.ret||0);
   return `
-    <h1>DELIVERY NOTE</h1>
-    <h2>${escapeHtml(company.name)}</h2>
-    <div class="meta">Ref: ${escapeHtml(delivery.fs)} | Date: ${escapeHtml(fmtDate(delivery.date))}</div>
-    <div class="row">
-      <div class="card"><div class="label">Supermarket</div><div class="value">${escapeHtml(delivery.smName)}</div></div>
-      <div class="card"><div class="label">Delivered</div><div class="value">${fmtN(delivery.qty)} KG</div></div>
-      <div class="card"><div class="label">Sold</div><div class="value">${fmtN(delivery.sold||0)} KG</div></div>
+    <div class="doc-head">
+      <div class="brand"><div class="brand-badge">DN</div><div><h1 class="brand-title">${escapeHtml(company.name).toUpperCase()}</h1><div class="brand-sub">Outbound delivery confirmation<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
+      <div><div class="status">In Transit</div><div class="meta">Ref: ${escapeHtml(delivery.fs)}<br>Date: ${escapeHtml(fmtDate(delivery.date))}</div></div>
+    </div>
+    <h2 class="doc-title">DELIVERY NOTE</h2>
+    <div class="highlight"><div><div class="highlight-label">Dispatch Summary</div><div class="copy" style="margin-top:4px">Use this note for gate release, outlet sign-off, and stock traceability.</div></div><div class="highlight-value">${escapeHtml(delivery.fs)}</div></div>
+    <div class="grid">
+      <div class="card"><div class="label">Destination</div><div class="value">${escapeHtml(delivery.smName)}</div></div>
+      <div class="card"><div class="label">Delivered Quantity</div><div class="value">${fmtN(delivery.qty)} KG</div></div>
+      <div class="card"><div class="label">Sold Quantity</div><div class="value">${fmtN(delivery.sold||0)} KG</div></div>
       <div class="card"><div class="label">Balance</div><div class="value">${fmtN(balance)} KG</div></div>
     </div>
-    <div class="note">This note confirms stock handover from warehouse dispatch to destination outlet.</div>
-    <div class="footer">${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div>
+    <div class="copy">This document confirms the stated stock has left the warehouse and is assigned to the selected outlet.</div>
+    <div class="signature"><div><div class="line">Warehouse Signature</div></div><div><div class="line">Outlet Signature</div></div></div>
+    <div class="footer"><div>Official distribution record</div><div>Page 1 of 1</div></div>
     <div class="wm">DN</div>`;
 }
 
@@ -833,17 +848,20 @@ function buildSalesReceiptBody(delivery,opts={}){
   const docDate=opts.docDate||delivery.date;
   const attachment=!!opts.attachment;
   return `
-    <h1>${attachment?'SALES RECEIPT ATTACHMENT':'SALES RECEIPT'}</h1>
-    <h2>${escapeHtml(company.name)}</h2>
-    <div class="meta">Ref: SR-${escapeHtml(fsNo)} | Date: ${escapeHtml(fmtDate(docDate))}</div>
-    <div class="row">
+    <div class="doc-head">
+      <div class="brand"><div class="brand-badge">SR</div><div><h1 class="brand-title">${escapeHtml(company.name).toUpperCase()}</h1><div class="brand-sub">Sales settlement receipt<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
+      <div><div class="status">${attachment?'Attachment':'Settlement'}</div><div class="meta">Ref: SR-${escapeHtml(fsNo)}<br>Date: ${escapeHtml(fmtDate(docDate))}</div></div>
+    </div>
+    <h2 class="doc-title">${attachment?'SALES RECEIPT ATTACHMENT':'SALES RECEIPT'}</h2>
+    <div class="highlight"><div><div class="highlight-label">Final Sold Quantity</div><div class="copy" style="margin-top:4px">Default assumes delivered quantity is sold, with optional adjustment.</div></div><div class="highlight-value">${fmtN(sold)} KG</div></div>
+    <div class="grid">
       <div class="card"><div class="label">Supermarket</div><div class="value">${escapeHtml(delivery.smName)}</div></div>
-      <div class="card"><div class="label">Sold Quantity</div><div class="value">${fmtN(sold)} KG</div></div>
+      <div class="card"><div class="label">Receipt FS#</div><div class="value">${escapeHtml(fsNo)}</div></div>
       <div class="card"><div class="label">Price</div><div class="value">ETB ${fmtN(price)} / KG</div></div>
       <div class="card"><div class="label">Estimated Value</div><div class="value">${fmtE(value)}</div></div>
     </div>
-    <div class="note">Adjustment: ${fmtN(adjustKg)} KG${opts.adjustNote?` | Note: ${escapeHtml(opts.adjustNote)}`:''}</div>
-    <div class="footer">${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div>
+    <div class="copy">Adjustment: ${fmtN(adjustKg)} KG${opts.adjustNote?` | Note: ${escapeHtml(opts.adjustNote)}`:''}</div>
+    <div class="footer"><div>Ledger-linked finance document</div><div>Page 1 of 1</div></div>
     <div class="wm">${attachment?'ATT':'SR'}</div>`;
 }
 
@@ -851,17 +869,20 @@ function buildDeliveryOrderBody(payload){
   const company=normalizeCompany(DB.get('company'));
   const sm=getSupermarketById(payload.supermarket_id);
   return `
-    <h1>DELIVERY ORDER</h1>
-    <h2>${escapeHtml(company.name)}</h2>
-    <div class="meta">Date: ${escapeHtml(fmtDate(payload.delivery_date||today()))}</div>
-    <div class="row">
+    <div class="doc-head">
+      <div class="brand"><div class="brand-badge">DO</div><div><h1 class="brand-title">${escapeHtml(company.name).toUpperCase()}</h1><div class="brand-sub">Dispatch authorization and handover copy<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
+      <div><div class="status">Signature Required</div><div class="meta">Date: ${escapeHtml(fmtDate(payload.delivery_date||today()))}<br>Prepared by: ERP Dispatch Desk</div></div>
+    </div>
+    <h2 class="doc-title">DELIVERY ORDER</h2>
+    <div class="grid">
       <div class="card"><div class="label">Outlet</div><div class="value">${escapeHtml(sm?sm.name:'Unknown')}</div></div>
       <div class="card"><div class="label">Quantity</div><div class="value">${fmtN(payload.qty)} KG</div></div>
       <div class="card"><div class="label">Driver</div><div class="value">${escapeHtml(payload.driver||'Dispatch Team')}</div></div>
       <div class="card"><div class="label">Outlet Branch</div><div class="value">${escapeHtml(sm?.branch||'-')}</div></div>
     </div>
-    <div class="note">${escapeHtml(payload.notes||'Both parties should verify quantity and sign at handover.')}</div>
-    <div class="footer">Signature (Warehouse): ____________________ &nbsp;&nbsp; Signature (Outlet): ____________________</div>
+    <div class="highlight"><div><div class="highlight-label">Instruction</div><div class="copy" style="margin-top:4px">${escapeHtml(payload.notes||'Both parties should verify quantity and sign at handover.')}</div></div><div class="highlight-value">${fmtN(payload.qty)} KG</div></div>
+    <div class="signature"><div><div class="line">Warehouse Signature</div></div><div><div class="line">Outlet Signature</div></div></div>
+    <div class="footer"><div>Official dispatch receipt</div><div>Page 1 of 1</div></div>
     <div class="wm">DO</div>`;
 }
 
@@ -873,16 +894,19 @@ function buildPriceLetterBody(payload){
     ? sms.filter(s=>payload.supermarket_ids.includes(s.id)).map(s=>s.name).join(', ')
     : `All active supermarkets (${sms.filter(s=>s.status==='Active').length})`;
   return `
-    <h1>PRICE CHANGE LETTER</h1>
-    <h2>${escapeHtml(company.name)}</h2>
-    <div class="meta">Effective Date: ${escapeHtml(fmtDate(payload.effective_date||today()))}</div>
-    <div class="row">
-      <div class="card"><div class="label">Current Price</div><div class="value">ETB ${fmtN(current)} / KG</div></div>
-      <div class="card"><div class="label">New Price</div><div class="value">ETB ${fmtN(payload.new_price)} / KG</div></div>
+    <div class="doc-head">
+      <div class="brand"><div class="brand-badge">PL</div><div><h1 class="brand-title">${escapeHtml(company.name).toUpperCase()}</h1><div class="brand-sub">Official distributor notice<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
+      <div><div class="status">Official Notice</div><div class="meta">Date: ${escapeHtml(fmtDate(today()))}<br>Effective: ${escapeHtml(fmtDate(payload.effective_date||today()))}</div></div>
     </div>
-    <div class="note"><strong>Recipients:</strong> ${escapeHtml(recipients)}</div>
-    <div class="note">${escapeHtml(payload.message_body||'Due to current logistics and sourcing costs, pricing is updated while maintaining quality and service reliability.')}</div>
-    <div class="footer">${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div>
+    <h2 class="doc-title">PRICE CHANGE LETTER</h2>
+    <div class="highlight"><div><div class="highlight-label">New Unit Price</div><div class="copy" style="margin-top:4px">Recipients: ${escapeHtml(recipients)}</div></div><div class="highlight-value">ETB ${fmtN(payload.new_price)}</div></div>
+    <div class="grid">
+      <div class="card"><div class="label">Current Price</div><div class="value">ETB ${fmtN(current)} / KG</div></div>
+      <div class="card"><div class="label">Effective Date</div><div class="value">${escapeHtml(fmtDate(payload.effective_date||today()))}</div></div>
+    </div>
+    <div class="copy">${escapeHtml(payload.message_body||'Due to current logistics and sourcing costs, pricing is updated while maintaining quality and service reliability.')}</div>
+    <div class="signature"><div><div class="line">Authorized Signature</div></div><div><div class="line">Distributor Acknowledgement</div></div></div>
+    <div class="footer"><div>Pricing policy document</div><div>Page 1 of 1</div></div>
     <div class="wm">PCL</div>`;
 }
 function isPhoneUI(){return window.matchMedia('(max-width: 820px)').matches;}
