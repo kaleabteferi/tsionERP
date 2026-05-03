@@ -388,7 +388,7 @@ tr:hover td{background:var(--color-background-secondary)}
       </div>
     </div>
   </div>
-  <div class="local-banner" id="localBanner" hidden>Local mode: data is stored in this browser only. Add <b>?api=1</b> to the URL to force live API mode.</div>
+  <div class="local-banner" id="localBanner" hidden>Local mode: this hosted version runs without a backend server and stores data in this browser only.</div>
   <div class="offline-banner" id="offlineBanner" hidden>Offline mode: showing cached data. New submissions require connection.</div>
   <div class="content" id="pageContent"></div>
 </div>
@@ -769,10 +769,6 @@ function escapeHtml(value){
 }
 function openPrintableDoc(title,bodyHtml){
   const win=window.open('','_blank');
-  if(!win){
-    toast('Popup blocked. Allow popups to generate PDF.','error');
-    return;
-  }
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title>
   <style>
     @page{size:A4;margin:12mm}
@@ -850,6 +846,20 @@ function openPrintableDoc(title,bodyHtml){
     @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:18px}.no-print{display:none}}
   </style></head><body><div class="sheet">${bodyHtml}</div>
   <div class="no-print" style="text-align:center;padding:8px"><button onclick="window.print()">Print / Save as PDF</button></div></body></html>`;
+  if(!win){
+    // Fallback for popup blockers: download a printable HTML file.
+    const blob=new Blob([html],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=(title||'document').replace(/\s+/g,'_')+'.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('Popup blocked. Downloaded printable file instead. Open it and Print to PDF.','info');
+    return;
+  }
   win.document.open();
   win.document.write(html);
   win.document.close();
@@ -1062,7 +1072,7 @@ function updateConnectivityUI(){
   if(banner) banner.hidden=!offline;
   if(localBanner) localBanner.hidden=LIVE_API_ENABLED;
   if(chip){
-    chip.textContent=LIVE_API_ENABLED?(offline?'Offline':'Live'):'Local';
+    chip.textContent=LIVE_API_ENABLED?(offline?'Offline':'Live'):'Local Only';
     chip.classList.toggle('offline',offline);
   }
 }
@@ -1088,8 +1098,14 @@ document.querySelectorAll('.bottom-nav-item').forEach(el=>el.addEventListener('c
 document.getElementById('mobileNavToggle')?.addEventListener('click',()=>setMenuOpen(true));
 document.getElementById('sidebarBackdrop')?.addEventListener('click',()=>setMenuOpen(false));
 window.addEventListener('resize',()=>{ if(!isPhoneUI()) setMenuOpen(false); });
-window.addEventListener('online',()=>{updateConnectivityUI(); toast('Back online. Live sync restored.','success');});
-window.addEventListener('offline',()=>{updateConnectivityUI(); toast('Offline mode enabled. Using cached data.','info');});
+window.addEventListener('online',()=>{
+  updateConnectivityUI();
+  if(LIVE_API_ENABLED) toast('Back online. Live sync restored.','success');
+});
+window.addEventListener('offline',()=>{
+  updateConnectivityUI();
+  if(LIVE_API_ENABLED) toast('Offline mode enabled. Using cached data.','info');
+});
 updateConnectivityUI();
 
 function modal(html){
