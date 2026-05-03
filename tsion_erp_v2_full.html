@@ -908,6 +908,42 @@ const PAGE_TITLES={dashboard:'Dashboard',supermarkets:'Supermarket Management',m
 
 function fmtN(n){return Number(n||0).toLocaleString();}
 function fmtE(n){return 'ETB '+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0});}
+function numberToWordsUnderThousand(value){
+  const ones=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+  const tens=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+  const num=Math.floor(Number(value)||0);
+  if(num<20) return ones[num];
+  if(num<100){
+    const tenWord=tens[Math.floor(num/10)];
+    const remainder=num%10;
+    return remainder?`${tenWord}-${ones[remainder]}`:tenWord;
+  }
+  const hundredWord=`${ones[Math.floor(num/100)]} hundred`;
+  const remainder=num%100;
+  return remainder?`${hundredWord} ${numberToWordsUnderThousand(remainder)}`:hundredWord;
+}
+function amountToWords(amount){
+  const total=Math.max(0,Number(amount)||0);
+  const birr=Math.floor(total);
+  const cents=Math.round((total-birr)*100);
+  if(birr===0&&cents===0) return 'Zero birr only';
+  const scales=['','thousand','million','billion'];
+  let remaining=birr;
+  const parts=[];
+  let scaleIndex=0;
+  while(remaining>0){
+    const chunk=remaining%1000;
+    if(chunk){
+      const chunkWords=numberToWordsUnderThousand(chunk);
+      parts.unshift(scales[scaleIndex]?`${chunkWords} ${scales[scaleIndex]}`:chunkWords);
+    }
+    remaining=Math.floor(remaining/1000);
+    scaleIndex+=1;
+  }
+  const birrWords=parts.length?`${parts.join(' ')} birr`:'zero birr';
+  if(!cents) return `${birrWords} only`.replace(/^./,s=>s.toUpperCase());
+  return `${birrWords} and ${numberToWordsUnderThousand(cents)} cents`.replace(/^./,s=>s.toUpperCase());
+}
 function today(){return new Date().toISOString().slice(0,10);}
 function fmtDate(d){return new Date(d).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
 function fmtBytes(bytes){
@@ -1073,6 +1109,7 @@ function buildSalesReceiptBody(delivery,opts={}){
   const subTotal=effectiveLines.reduce((sum,line)=>sum+(Number(line.qty||0)*price),0);
   const tax=0;
   const value=subTotal+tax;
+  const amountInWords=amountToWords(value);
   const linesHtml=effectiveLines.map(line=>{
     const qty=Number(line.qty||0);
     const amount=qty*price;
@@ -1104,6 +1141,7 @@ function buildSalesReceiptBody(delivery,opts={}){
       <div class="totals-row"><span>Tax</span><strong>${fmtE(tax)}</strong></div>
       <div class="totals-row grand"><span>Total Due</span><strong>${fmtE(value)}</strong></div>
     </div></div>
+    <div class="copy"><strong>Amount in words:</strong> ${escapeHtml(amountInWords)}</div>
     <div class="copy">Adjustment: ${fmtN(adjustKg)} KG${opts.adjustNote?` | Note: ${escapeHtml(opts.adjustNote)}`:''}</div>
     <div class="signature"><div><div class="line">Prepared By</div></div><div><div class="line">Authorized Signature</div></div></div>
     <div class="footer"><div>Thank you for your partnership.</div><div>Page 1 of 1</div></div>
@@ -1131,6 +1169,7 @@ function buildDeliveryOrderBody(payload){
   const taxable=Math.max(0,subtotal-discount);
   const vatAmount=taxable*vatRate/100;
   const total=taxable+vatAmount;
+  const totalInWords=amountToWords(total);
   const note=payload.notes||'';
 
   const renderCopy=(copyLabel)=>`
@@ -1186,6 +1225,8 @@ function buildDeliveryOrderBody(payload){
       </div>
 
       <div class="do-remarks"><div class="do-field-label">Remarks</div><div class="do-line">${escapeHtml(note)||' '}</div></div>
+
+      <div class="do-remarks"><div class="do-field-label">Amount in Words</div><div class="do-line">${escapeHtml(totalInWords)}</div></div>
 
       <div class="do-footer">
         <div class="do-note">Goods received in good condition unless otherwise stated.<br>Thank you for your business.</div>
@@ -2370,11 +2411,13 @@ PAGES.documents=function(){
     const orderTaxable=Math.max(0,orderSubtotal-orderDiscount);
     const orderVat=orderTaxable*orderVatRate/100;
     const orderTotal=orderTaxable+orderVat;
+    const orderTotalInWords=amountToWords(orderTotal);
     const receiptState=getReceiptAdjustState(selectedDelivery);
     const receiptProductState=getReceiptProductState(selectedDelivery);
     const attachmentStateMeta=getAttachmentMetaState(selectedDelivery);
     const receiptSold=receiptProductState.totalQty>0?receiptProductState.totalQty:receiptState.soldQty;
     const receiptAmount=receiptSold*currentPrice;
+    const receiptAmountInWords=amountToWords(receiptAmount);
     const recipientLabel=priceRecipient==='all'?`All active supermarkets (${activeSms.length})`:(activeSms.find(s=>s.id===priceRecipient)?.name||'Selected supermarket');
     const deliveryBalance=selectedDelivery?selectedDelivery.qty-(selectedDelivery.sold||0)-(selectedDelivery.ret||0):0;
 
@@ -2470,6 +2513,7 @@ PAGES.documents=function(){
             </div>
             <div class="pdf-inline-note" style="max-width:220px;text-align:right">${orderNotes}</div>
           </div>
+          <p><strong>Amount in words:</strong> ${escapeHtml(orderTotalInWords)}</p>
           <p>This delivery receipt is issued in formal copy format for warehouse and outlet records. Both parties sign upon handover after confirming quantity and condition.</p>
           <div class="pdf-data-grid">
             <div class="pdf-data-card"><span>Released by</span><strong>${companyName}</strong></div>
@@ -2525,6 +2569,7 @@ PAGES.documents=function(){
             </div>
             <div class="pdf-highlight-value">${fmtN(receiptState.baseQty)} + (${fmtN(receiptState.adjustKg)})</div>
           </div>
+          <p><strong>Amount in words:</strong> ${escapeHtml(receiptAmountInWords)}</p>
           <div class="pdf-data-grid">
             <div class="pdf-data-card"><span>Remaining quantity</span><strong>${fmtN(receiptState.remainingQty)} KG</strong></div>
             <div class="pdf-data-card"><span>Attachment receipt date</span><strong>${fmtDate(attachmentStateMeta.docDate)}</strong></div>
