@@ -109,6 +109,10 @@ tr:hover td{background:var(--color-background-secondary)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 .search-bar{width:100%;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;background:var(--color-background-secondary);color:var(--color-text-primary);margin-bottom:12px}
+.toolbar-row{display:grid;grid-template-columns:minmax(200px,1fr) auto auto;gap:8px;align-items:end;margin-bottom:12px}
+.toolbar-row .form-group{margin-bottom:0}
+.toolbar-row input,.toolbar-row select{padding:7px 9px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);font-size:12px;background:var(--color-background-secondary);color:var(--color-text-primary)}
+.toolbar-row label{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:3px}
 .tab-bar{display:flex;gap:2px;margin-bottom:14px;background:var(--color-background-secondary);padding:3px;border-radius:var(--border-radius-md);overflow-x:auto}
 .tab{padding:4px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;color:var(--color-text-secondary);border:none;background:none;white-space:nowrap}
 .tab.active{background:var(--color-background-primary);color:var(--color-text-primary)}
@@ -305,6 +309,7 @@ tr:hover td{background:var(--color-background-secondary)}
   .content{padding:12px 12px 92px}
   .offline-banner{padding:10px 12px}
   .two-col,.form-row,.export-grid,.doc-grid,.doc-meta,.pdf-stage,.pdf-input-grid,.pdf-record-metrics,.pdf-data-grid{grid-template-columns:1fr}
+  .toolbar-row{grid-template-columns:1fr}
   .card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .table-scroll table{min-width:640px}
   .modal-wrap{padding:12px}
@@ -445,6 +450,10 @@ const DB={
       {id:'p3',ref:'PAY-003',smId:'SM003',smName:'Bambis Supermarket',amount:8000,date:'2025-04-01',method:'Bank Transfer'},
     ]);
     if(!this.get('price'))this.set('price',{perKg:85,history:[{p:85,date:'2024-01-01'}]});
+    if(!this.get('pos'))this.set('pos',[
+      {id:'PO001',ref:'PO-001',supplier:'Selam Grain Supplier',qty:600,unitPrice:78,expectedDate:'2026-05-01',status:'Pending',notes:'Rush order for low warehouse stock',createdAt:new Date().toISOString()},
+      {id:'PO002',ref:'PO-002',supplier:'Abay Agro PLC',qty:450,unitPrice:80,expectedDate:'2026-05-18',status:'Approved',notes:'Secondary buffer order',createdAt:new Date().toISOString()}
+    ]);
     if(!this.get('company'))this.set('company',DEFAULT_COMPANY);
   }
 };
@@ -486,7 +495,7 @@ function loadExternalScript(src){
 }
 
 function ensureLocalSeed(){
-  if(!DB.get('sms')||!DB.get('inv')||!DB.get('dels')||!DB.get('pays')||!DB.get('price')||!DB.get('company')){
+  if(!DB.get('sms')||!DB.get('inv')||!DB.get('dels')||!DB.get('pays')||!DB.get('price')||!DB.get('pos')||!DB.get('company')){
     DB.init();
   }
 }
@@ -499,6 +508,7 @@ function snapshotForCloud(){
     pays:DB.get('pays')||[],
     inv:DB.get('inv')||{},
     price:DB.get('price')||{},
+    pos:DB.get('pos')||[],
     company:DB.get('company')||DEFAULT_COMPANY
   };
 }
@@ -512,6 +522,7 @@ function applyCloudSnapshot(snapshot){
     if(snapshot.pays) DB.set('pays',snapshot.pays);
     if(snapshot.inv) DB.set('inv',snapshot.inv);
     if(snapshot.price) DB.set('price',snapshot.price);
+    if(snapshot.pos) DB.set('pos',snapshot.pos);
     if(snapshot.company) DB.set('company',snapshot.company);
   }finally{
     FIRESTORE_STATE.suspendWrites=false;
@@ -1104,12 +1115,22 @@ function buildDeliveryOrderBody(payload){
   const sm=getSupermarketById(payload.supermarket_id);
   const doNumber=payload.do_number||`DO-${String(Date.now()).slice(-6)}`;
   const doDate=payload.delivery_date||today();
+  const invoiceNo=payload.invoice_no||`INV-${String(Date.now()).slice(-6)}`;
+  const paymentTerms=payload.payment_terms||'Net 7 days';
   const customerName=sm?.name||'Customer';
   const customerPhone=sm?.phone||'________________';
   const customerAddress=sm?.address||'________________';
   const driver=payload.driver||'________________';
   const vehicle=payload.vehicle_plate||'________________';
-  const qty=fmtN(payload.qty||0);
+  const qtyNum=Number(payload.qty||0);
+  const qty=fmtN(qtyNum);
+  const unitPrice=Number(payload.unit_price||((DB.get('price')||{perKg:85}).perKg||85));
+  const discount=Number(payload.discount||0);
+  const vatRate=Math.max(0,Number(payload.vat_rate||15));
+  const subtotal=qtyNum*unitPrice;
+  const taxable=Math.max(0,subtotal-discount);
+  const vatAmount=taxable*vatRate/100;
+  const total=taxable+vatAmount;
   const note=payload.notes||'';
 
   const renderCopy=(copyLabel)=>`
@@ -1126,6 +1147,7 @@ function buildDeliveryOrderBody(payload){
         <div class="do-meta">
           <div class="do-title">Delivery Order</div>
           <div class="do-meta-row"><span>DO #</span><strong>${escapeHtml(doNumber)}</strong></div>
+          <div class="do-meta-row"><span>INV #</span><strong>${escapeHtml(invoiceNo)}</strong></div>
           <div class="do-meta-row"><span>Date</span><strong>${escapeHtml(fmtDate(doDate))}</strong></div>
         </div>
       </div>
@@ -1136,6 +1158,8 @@ function buildDeliveryOrderBody(payload){
         <div class="do-field full"><div class="do-field-label">Delivery Address</div><div class="do-field-value">${escapeHtml(customerAddress)}</div></div>
         <div class="do-field"><div class="do-field-label">Driver Name</div><div class="do-field-value">${escapeHtml(driver)}</div></div>
         <div class="do-field"><div class="do-field-label">Vehicle Plate</div><div class="do-field-value">${escapeHtml(vehicle)}</div></div>
+        <div class="do-field"><div class="do-field-label">Payment Terms</div><div class="do-field-value">${escapeHtml(paymentTerms)}</div></div>
+        <div class="do-field"><div class="do-field-label">VAT</div><div class="do-field-value">${fmtN(vatRate)}%</div></div>
       </div>
 
       <div class="do-checks">
@@ -1145,12 +1169,13 @@ function buildDeliveryOrderBody(payload){
 
       <div class="do-items">
         <table>
-          <thead><tr><th>Item Name</th><th>Description</th><th>Quantity</th><th>Unit</th></tr></thead>
+          <thead><tr><th>Item Name</th><th>Description</th><th>Quantity</th><th>Unit Price</th><th>Amount</th></tr></thead>
           <tbody>
-            <tr><td>Tsion Parboiled Brown Rice</td><td>Premium whole grain rice</td><td>${qty}</td><td>KG</td></tr>
-            <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-            <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
-            <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>Tsion Parboiled Brown Rice</td><td>Premium whole grain rice</td><td>${qty} KG</td><td>${fmtE(unitPrice)}</td><td>${fmtE(subtotal)}</td></tr>
+            <tr><td colspan="4"><strong>Subtotal</strong></td><td><strong>${fmtE(subtotal)}</strong></td></tr>
+            <tr><td colspan="4">Discount</td><td>${fmtE(discount)}</td></tr>
+            <tr><td colspan="4">VAT (${fmtN(vatRate)}%)</td><td>${fmtE(vatAmount)}</td></tr>
+            <tr><td colspan="4"><strong>Invoice Total</strong></td><td><strong>${fmtE(total)}</strong></td></tr>
           </tbody>
         </table>
       </div>
@@ -1402,7 +1427,19 @@ window.genDeliveryOrder=function(delId){
   const dels=DB.get('dels')||[];
   const d=dels.find(x=>x.id===delId);
   if(!d) return;
-  const body={supermarket_id:d.smId,qty:d.qty,delivery_date:d.date,driver:'',notes:''};
+  const currentPrice=(DB.get('price')||{perKg:85}).perKg||85;
+  const body={
+    supermarket_id:d.smId,
+    qty:d.qty,
+    delivery_date:d.date,
+    driver:'',
+    invoice_no:`INV-${String(d.fs||'').replace('FS-','')}`,
+    unit_price:currentPrice,
+    vat_rate:15,
+    discount:0,
+    payment_terms:'Net 7 days',
+    notes:''
+  };
   if(!LIVE_API_ENABLED){
     openPrintableDoc(`Delivery Order ${d.fs}`,buildDeliveryOrderBody(body));
     closeModal();
@@ -1596,19 +1633,26 @@ PAGES.maps=function(){
 PAGES.inventory=function(){
   const pc=document.getElementById('pageContent');
   const ta=document.getElementById('topActions');
-  ta.innerHTML=`<button class="btn btn-primary btn-sm" id="addStockBtn">+ Stock in</button><button class="btn btn-sm" id="setPriceBtn" style="margin-left:6px">Set price</button>`;
+  ta.innerHTML=`<button class="btn btn-primary btn-sm" id="addStockBtn">+ Stock in</button><button class="btn btn-sm" id="setPriceBtn" style="margin-left:6px">Set price</button><button class="btn btn-sm" id="addPoBtn" style="margin-left:6px">+ Purchase order</button>`;
   const inv=DB.get('inv')||{stock:0,received:0,txns:[]};
   const dels=DB.get('dels')||[];
+  const pos=(DB.get('pos')||[]).slice().sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
   const totalOut=dels.reduce((s,d)=>s+d.qty,0);
   const totalRet=dels.reduce((s,d)=>s+(d.ret||0),0);
   const atSMs=dels.reduce((s,d)=>s+(d.qty-d.sold-d.ret),0);
   const price=DB.get('price')||{perKg:85};
+  const reorderLevel=250;
+  const pendingPos=pos.filter(po=>po.status==='Pending'||po.status==='Approved');
+  const overduePos=pendingPos.filter(po=>po.expectedDate&&new Date(po.expectedDate)<new Date(today()));
   pc.innerHTML=`
+  ${inv.stock<reorderLevel?`<div class="alert alert-warning"><span>⚠</span><span>Warehouse stock is below reorder level (${fmtN(reorderLevel)} KG). Add or approve a purchase order.</span></div>`:''}
+  ${overduePos.length?`<div class="alert alert-danger"><span>⏱</span><span>${overduePos.length} purchase order(s) are overdue and still not received.</span></div>`:''}
   <div class="card-grid">
     <div class="metric success"><div class="metric-label">Warehouse stock</div><div class="metric-value">${fmtN(inv.stock)} KG</div></div>
     <div class="metric"><div class="metric-label">Total received</div><div class="metric-value">${fmtN(inv.received)} KG</div></div>
     <div class="metric warn"><div class="metric-label">Distributed</div><div class="metric-value">${fmtN(totalOut)} KG</div></div>
     <div class="metric"><div class="metric-label">At supermarkets</div><div class="metric-value">${fmtN(atSMs)} KG</div></div>
+    <div class="metric"><div class="metric-label">Open purchase orders</div><div class="metric-value">${pendingPos.length}</div></div>
   </div>
   <div class="card" style="margin-bottom:14px;font-size:12px">
     <strong>Balance check:</strong> ${fmtN(inv.received)} received − ${fmtN(totalOut)} out + ${fmtN(totalRet)} returned = <strong>${fmtN(inv.received-totalOut+totalRet)} KG</strong>
@@ -1633,6 +1677,24 @@ PAGES.inventory=function(){
       <td>${fmtN(t.qty)}</td><td>${fmtDate(t.date)}</td>
       <td style="color:var(--color-text-secondary)">${t.note||''}</td>
     </tr>`).join('')}</tbody></table>`}
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="section-hdr">Purchase orders <button class="btn btn-sm" id="poCreateInline">+ Add PO</button></div>
+    ${pos.length?`<table><thead><tr><th>PO#</th><th>Supplier</th><th>Qty</th><th>Unit price</th><th>Total</th><th>Expected</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody>${pos.map(po=>`<tr>
+      <td style="font-family:var(--font-mono,monospace);font-size:10px">${po.ref}</td>
+      <td>${escapeHtml(po.supplier||'—')}</td>
+      <td>${fmtN(po.qty||0)} KG</td>
+      <td>${fmtE(po.unitPrice||0)}</td>
+      <td style="font-weight:600">${fmtE((po.qty||0)*(po.unitPrice||0))}</td>
+      <td>${po.expectedDate?fmtDate(po.expectedDate):'—'}</td>
+      <td><span class="badge ${po.status==='Received'?'badge-success':po.status==='Cancelled'?'badge-gray':po.status==='Approved'?'badge-info':'badge-warning'}">${po.status||'Pending'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm" onclick="editPO('${po.id}')">Edit</button>
+        ${po.status!=='Received'?`<button class="btn btn-sm" onclick="markPOReceived('${po.id}')" style="margin-left:3px">Receive</button>`:''}
+        <button class="btn btn-sm btn-danger" onclick="deletePO('${po.id}')" style="margin-left:3px">Delete</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`:`<div class="empty">No purchase orders yet. Add one to track incoming stock commitments.</div>`}
   </div>`;
 
   document.getElementById('addStockBtn').addEventListener('click',()=>{
@@ -1656,6 +1718,8 @@ PAGES.inventory=function(){
       <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePrice()">Update price</button></div>
     </div>`);
   });
+  document.getElementById('addPoBtn')?.addEventListener('click',()=>openPOForm());
+  document.getElementById('poCreateInline')?.addEventListener('click',()=>openPOForm());
 };
 
 window.saveStockIn=function(){
@@ -1690,19 +1754,136 @@ window.savePrice=function(){
     .catch(err=>toast(err.message||'Price update failed','error'));
 };
 
+function nextPurchaseOrderRef(pos){
+  const max=(pos||[]).reduce((m,p)=>Math.max(m,parseInt(String(p.ref||'PO-000').replace('PO-',''))||0),0);
+  return 'PO-'+String(max+1).padStart(3,'0');
+}
+
+window.openPOForm=function(po=null){
+  modal(`<div class="modal">
+    <div class="modal-title">${po?'Edit':'Create'} Purchase Order <span class="modal-close" onclick="closeModal()">✕</span></div>
+    <div class="form-row">
+      <div class="form-group"><label>Supplier *</label><input id="po_supplier" value="${escapeHtml(po?.supplier||'')}" placeholder="Supplier name"></div>
+      <div class="form-group"><label>Expected date *</label><input id="po_expected" type="date" value="${po?.expectedDate||today()}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Quantity (KG) *</label><input id="po_qty" type="number" min="1" value="${Number(po?.qty||0)||''}"></div>
+      <div class="form-group"><label>Unit price (ETB) *</label><input id="po_price" type="number" min="0.01" step="0.01" value="${Number(po?.unitPrice||0)||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Status</label><select id="po_status"><option ${po?.status==='Pending'?'selected':''}>Pending</option><option ${po?.status==='Approved'?'selected':''}>Approved</option><option ${po?.status==='Received'?'selected':''}>Received</option><option ${po?.status==='Cancelled'?'selected':''}>Cancelled</option></select></div>
+      <div class="form-group"><label>Notes</label><input id="po_notes" value="${escapeHtml(po?.notes||'')}" placeholder="Optional notes"></div>
+    </div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="savePO('${po?.id||''}')">Save PO</button></div>
+  </div>`);
+};
+
+window.savePO=function(id){
+  const supplier=(document.getElementById('po_supplier')?.value||'').trim();
+  const expectedDate=document.getElementById('po_expected')?.value||today();
+  const qty=parseFloat(document.getElementById('po_qty')?.value||'0')||0;
+  const unitPrice=parseFloat(document.getElementById('po_price')?.value||'0')||0;
+  const status=document.getElementById('po_status')?.value||'Pending';
+  const notes=(document.getElementById('po_notes')?.value||'').trim();
+  if(!supplier||qty<=0||unitPrice<=0){toast('Supplier, quantity, and unit price are required','error');return;}
+  const pos=DB.get('pos')||[];
+  if(id){
+    const idx=pos.findIndex(p=>p.id===id);
+    if(idx<0){toast('Purchase order not found','error');return;}
+    pos[idx]={...pos[idx],supplier,expectedDate,qty,unitPrice,status,notes};
+  }else{
+    pos.unshift({id:newId('po'),ref:nextPurchaseOrderRef(pos),supplier,expectedDate,qty,unitPrice,status,notes,createdAt:new Date().toISOString()});
+  }
+  DB.set('pos',pos);
+  closeModal();
+  toast('Purchase order saved');
+  PAGES.inventory();
+};
+
+window.editPO=function(id){
+  const po=(DB.get('pos')||[]).find(p=>p.id===id);
+  if(po) openPOForm(po);
+};
+
+window.deletePO=function(id){
+  if(!confirm('Delete this purchase order?')) return;
+  DB.set('pos',(DB.get('pos')||[]).filter(p=>p.id!==id));
+  toast('Purchase order deleted');
+  PAGES.inventory();
+};
+
+window.markPOReceived=function(id){
+  const pos=DB.get('pos')||[];
+  const idx=pos.findIndex(p=>p.id===id);
+  if(idx<0) return;
+  pos[idx].status='Received';
+  DB.set('pos',pos);
+  toast(`${pos[idx].ref} marked as received`,'success');
+  PAGES.inventory();
+};
+
 PAGES.deliveries=function(){
   const pc=document.getElementById('pageContent');
   const ta=document.getElementById('topActions');
   ta.innerHTML=`<button class="btn btn-primary btn-sm" id="addDelBtn">+ New delivery</button>`;
   let tab='all';
+  let searchTerm=window.__deliverySearch||'';
+  let sortBy=window.__deliverySort||'date_desc';
+  let statusFilter=window.__deliveryStatus||'all';
   function render(){
     const dels=DB.get('dels')||[];
     const sms=DB.get('sms')||[];
-    const show=tab==='all'?dels:dels.filter(d=>d.smId===tab);
+    let show=tab==='all'?dels:dels.filter(d=>d.smId===tab);
+    const q=(searchTerm||'').trim().toLowerCase();
+    if(q){
+      show=show.filter(d=>`${d.fs} ${d.smName} ${fmtDate(d.date)}`.toLowerCase().includes(q));
+    }
+    if(statusFilter!=='all'){
+      show=show.filter(d=>{
+        const bal=(d.qty||0)-(d.sold||0)-(d.ret||0);
+        if(statusFilter==='closed') return bal<=0;
+        if(statusFilter==='open') return bal>0;
+        if(statusFilter==='returned') return (d.ret||0)>0;
+        return true;
+      });
+    }
+    const sorters={
+      date_desc:(a,b)=>new Date(b.date||0)-new Date(a.date||0),
+      date_asc:(a,b)=>new Date(a.date||0)-new Date(b.date||0),
+      qty_desc:(a,b)=>(b.qty||0)-(a.qty||0),
+      sold_desc:(a,b)=>(b.sold||0)-(a.sold||0),
+      balance_desc:(a,b)=>((b.qty||0)-(b.sold||0)-(b.ret||0))-((a.qty||0)-(a.sold||0)-(a.ret||0))
+    };
+    show=show.slice().sort(sorters[sortBy]||sorters.date_desc);
     pc.innerHTML=`
     <div class="tab-bar" id="dTabs">
       <button class="tab ${tab==='all'?'active':''}" data-t="all">All</button>
       ${sms.map(s=>`<button class="tab ${tab===s.id?'active':''}" data-t="${s.id}">${s.name.split(' ')[0]}</button>`).join('')}
+    </div>
+    <div class="toolbar-row">
+      <div>
+        <label>Search</label>
+        <input id="deliverySearch" value="${escapeHtml(searchTerm)}" placeholder="FS#, supermarket, or date">
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="deliveryStatus">
+          <option value="all" ${statusFilter==='all'?'selected':''}>All</option>
+          <option value="open" ${statusFilter==='open'?'selected':''}>Open balance</option>
+          <option value="closed" ${statusFilter==='closed'?'selected':''}>Closed</option>
+          <option value="returned" ${statusFilter==='returned'?'selected':''}>With returns</option>
+        </select>
+      </div>
+      <div>
+        <label>Sort</label>
+        <select id="deliverySort">
+          <option value="date_desc" ${sortBy==='date_desc'?'selected':''}>Newest date</option>
+          <option value="date_asc" ${sortBy==='date_asc'?'selected':''}>Oldest date</option>
+          <option value="qty_desc" ${sortBy==='qty_desc'?'selected':''}>Highest qty</option>
+          <option value="sold_desc" ${sortBy==='sold_desc'?'selected':''}>Highest sold</option>
+          <option value="balance_desc" ${sortBy==='balance_desc'?'selected':''}>Highest balance</option>
+        </select>
+      </div>
     </div>
     <div class="card-grid">
       <div class="metric"><div class="metric-label">Deliveries</div><div class="metric-value">${show.length}</div></div>
@@ -1737,6 +1918,9 @@ PAGES.deliveries=function(){
     </tr>`).join(''):`<tr><td colspan="8"><div class="empty">No deliveries yet.</div></td></tr>`}
     </tbody></table>`}</div>`;
     document.querySelectorAll('#dTabs .tab').forEach(t=>t.addEventListener('click',()=>{tab=t.dataset.t;render();}));
+    document.getElementById('deliverySearch')?.addEventListener('input',e=>{searchTerm=e.target.value||'';window.__deliverySearch=searchTerm;render();});
+    document.getElementById('deliveryStatus')?.addEventListener('change',e=>{statusFilter=e.target.value||'all';window.__deliveryStatus=statusFilter;render();});
+    document.getElementById('deliverySort')?.addEventListener('change',e=>{sortBy=e.target.value||'date_desc';window.__deliverySort=sortBy;render();});
   }
   render();
   document.getElementById('addDelBtn').addEventListener('click',()=>{
@@ -1824,11 +2008,32 @@ PAGES.receivables=function(){
   const pc=document.getElementById('pageContent');
   const ta=document.getElementById('topActions');
   ta.innerHTML=`<button class="btn btn-sm btn-primary" onclick="nav('documents')">📄 Price letter</button>`;
-  const sms=DB.get('sms')||[];
+  const sms=(DB.get('sms')||[]).slice();
+  let q=window.__receivableSearch||'';
+  let srt=window.__receivableSort||'outstanding_desc';
+  const sq=(q||'').trim().toLowerCase();
+  let show=sq?sms.filter(s=>`${s.name} ${s.branch}`.toLowerCase().includes(sq)):sms;
+  const sorters={
+    outstanding_desc:(a,b)=>(b.outstanding||0)-(a.outstanding||0),
+    outstanding_asc:(a,b)=>(a.outstanding||0)-(b.outstanding||0),
+    usage_desc:(a,b)=>((b.outstanding||0)/(b.creditLimit||1))-((a.outstanding||0)/(a.creditLimit||1)),
+    name_asc:(a,b)=>String(a.name||'').localeCompare(String(b.name||''))
+  };
+  show=show.sort(sorters[srt]||sorters.outstanding_desc);
   const total=sms.reduce((s,m)=>s+(m.outstanding||0),0);
   const over=sms.filter(s=>s.outstanding>s.creditLimit);
   pc.innerHTML=`
   ${over.map(s=>`<div class="alert alert-danger"><span>⚠</span><span>${s.name} exceeded credit limit: ${fmtE(s.outstanding)} / ${fmtE(s.creditLimit)}</span></div>`).join('')}
+  <div class="toolbar-row">
+    <div><label>Search</label><input id="recSearch" value="${escapeHtml(q)}" placeholder="Supermarket or branch"></div>
+    <div><label>Sort</label><select id="recSort">
+      <option value="outstanding_desc" ${srt==='outstanding_desc'?'selected':''}>Highest outstanding</option>
+      <option value="outstanding_asc" ${srt==='outstanding_asc'?'selected':''}>Lowest outstanding</option>
+      <option value="usage_desc" ${srt==='usage_desc'?'selected':''}>Highest credit usage</option>
+      <option value="name_asc" ${srt==='name_asc'?'selected':''}>Name A-Z</option>
+    </select></div>
+    <div></div>
+  </div>
   <div class="card-grid">
     <div class="metric danger"><div class="metric-label">Total outstanding</div><div class="metric-value">${fmtE(total)}</div></div>
     <div class="metric warn"><div class="metric-label">Over limit</div><div class="metric-value">${over.length}</div><div class="metric-sub">supermarkets</div></div>
@@ -1837,7 +2042,7 @@ PAGES.receivables=function(){
   </div>
   <div class="card">
     <div class="section-hdr">Aging & credit status</div>
-    ${isPhoneUI()?`<div class="mobile-stack">${sms.map(sm=>{
+    ${isPhoneUI()?`<div class="mobile-stack">${show.map(sm=>{
       const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));
       const bc=p>=100?'danger':p>=80?'warn':'success';
       const bl=p>=100?'Over limit':p>=80?'Near limit':'Good';
@@ -1854,7 +2059,7 @@ PAGES.receivables=function(){
         `<button class="btn btn-sm btn-primary" onclick="openPaymentForm('${sm.id}')">Record Payment</button>`
       );
     }).join('')}</div>`:`<table><thead><tr><th>Supermarket</th><th>Outstanding</th><th>Credit limit</th><th>Usage</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>${sms.map(sm=>{
+    <tbody>${show.map(sm=>{
       const p=Math.min(100,Math.round((sm.outstanding||0)/sm.creditLimit*100));
       const bc=p>=100?'badge-danger':p>=80?'badge-warning':'badge-success';
       const bl=p>=100?'Over limit':p>=80?'Near limit':'Good';
@@ -1870,6 +2075,8 @@ PAGES.receivables=function(){
       </tr>`;}).join('')}
     </tbody></table>`}
   </div>`;
+  document.getElementById('recSearch')?.addEventListener('input',e=>{window.__receivableSearch=e.target.value||'';PAGES.receivables();});
+  document.getElementById('recSort')?.addEventListener('change',e=>{window.__receivableSort=e.target.value||'outstanding_desc';PAGES.receivables();});
 };
 
 window.openPaymentForm=function(smId){
@@ -1919,18 +2126,41 @@ window.savePayment=function(smId){
 
 PAGES.payments=function(){
   const pc=document.getElementById('pageContent');
-  const pays=DB.get('pays')||[];
+  const pays=(DB.get('pays')||[]).slice();
+  const query=(window.__paymentSearch||'').trim().toLowerCase();
+  const methodFilter=window.__paymentMethod||'all';
+  const sortBy=window.__paymentSort||'date_desc';
+  let show=query?pays.filter(p=>`${p.ref} ${p.smName} ${p.method}`.toLowerCase().includes(query)):pays;
+  if(methodFilter!=='all') show=show.filter(p=>p.method===methodFilter);
+  const paySorters={
+    date_desc:(a,b)=>new Date(b.date||0)-new Date(a.date||0),
+    date_asc:(a,b)=>new Date(a.date||0)-new Date(b.date||0),
+    amount_desc:(a,b)=>(b.amount||0)-(a.amount||0),
+    amount_asc:(a,b)=>(a.amount||0)-(b.amount||0)
+  };
+  show=show.sort(paySorters[sortBy]||paySorters.date_desc);
   const total=pays.reduce((s,p)=>s+p.amount,0);
+  const methods=[...new Set(pays.map(p=>p.method).filter(Boolean))];
   pc.innerHTML=`
   <div class="card-grid">
     <div class="metric success"><div class="metric-label">Total collected</div><div class="metric-value">${fmtE(total)}</div></div>
-    <div class="metric"><div class="metric-label">Transactions</div><div class="metric-value">${pays.length}</div></div>
+    <div class="metric"><div class="metric-label">Transactions</div><div class="metric-value">${show.length}</div></div>
+  </div>
+  <div class="toolbar-row">
+    <div><label>Search</label><input id="paySearch" value="${escapeHtml(window.__paymentSearch||'')}" placeholder="Ref, supermarket, method"></div>
+    <div><label>Method</label><select id="payMethod"><option value="all" ${methodFilter==='all'?'selected':''}>All</option>${methods.map(m=>`<option value="${escapeHtml(m)}" ${methodFilter===m?'selected':''}>${escapeHtml(m)}</option>`).join('')}</select></div>
+    <div><label>Sort</label><select id="paySort">
+      <option value="date_desc" ${sortBy==='date_desc'?'selected':''}>Newest</option>
+      <option value="date_asc" ${sortBy==='date_asc'?'selected':''}>Oldest</option>
+      <option value="amount_desc" ${sortBy==='amount_desc'?'selected':''}>Highest amount</option>
+      <option value="amount_asc" ${sortBy==='amount_asc'?'selected':''}>Lowest amount</option>
+    </select></div>
   </div>
   <div class="card">
     <div class="section-hdr">Payment history
       <button class="btn btn-sm" onclick="nav('export')">Export Excel</button>
     </div>
-    ${isPhoneUI()?`${pays.length?`<div class="mobile-stack">${pays.map(p=>mobileAccordion(
+    ${isPhoneUI()?`${show.length?`<div class="mobile-stack">${show.map(p=>mobileAccordion(
       p.ref,
       `${p.smName} · ${fmtDate(p.date)}`,
       mobileChip(fmtE(p.amount),'success')+mobileChip(p.method),
@@ -1940,15 +2170,18 @@ PAGES.payments=function(){
         ['Date',fmtDate(p.date)],
         ['Supermarket',p.smName]
       ])
-    )).join('')}</div>`:`<div class="empty">No payments yet.</div>`}`:`<table><thead><tr><th>Ref</th><th>Supermarket</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
-    <tbody>${pays.length?pays.map(p=>`<tr>
+    )).join('')}</div>`:`<div class="empty">No payments found.</div>`}`:`<table><thead><tr><th>Ref</th><th>Supermarket</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+    <tbody>${show.length?show.map(p=>`<tr>
       <td style="font-family:var(--font-mono,monospace);font-size:10px">${p.ref}</td>
       <td>${p.smName}</td><td style="font-weight:500">${fmtE(p.amount)}</td>
       <td><span class="badge badge-info">${p.method}</span></td>
       <td>${fmtDate(p.date)}</td>
-    </tr>`).join(''):`<tr><td colspan="5"><div class="empty">No payments yet.</div></td></tr>`}
+    </tr>`).join(''):`<tr><td colspan="5"><div class="empty">No payments found.</div></td></tr>`}
     </tbody></table>`}
   </div>`;
+  document.getElementById('paySearch')?.addEventListener('input',e=>{window.__paymentSearch=e.target.value||'';PAGES.payments();});
+  document.getElementById('payMethod')?.addEventListener('change',e=>{window.__paymentMethod=e.target.value||'all';PAGES.payments();});
+  document.getElementById('paySort')?.addEventListener('change',e=>{window.__paymentSort=e.target.value||'date_desc';PAGES.payments();});
 };
 
 PAGES.documents=function(){
@@ -2128,6 +2361,15 @@ PAGES.documents=function(){
     const orderDate=document.getElementById('do_date')?.value||today();
     const orderDriver=(document.getElementById('do_driver')?.value||'Dispatch team').trim()||'Dispatch team';
     const orderNotes=(document.getElementById('do_notes')?.value||'').trim()||'Both parties should sign this same A4 receipt after checking quantity and bag condition.';
+    const orderInvoiceNo=(document.getElementById('do_invoice')?.value||`INV-${String(Date.now()).slice(-6)}`).trim();
+    const orderTerms=(document.getElementById('do_terms')?.value||'Net 7 days').trim();
+    const orderUnitPrice=parseFloat(document.getElementById('do_unit_price')?.value||'')||currentPrice;
+    const orderVatRate=Math.max(0,parseFloat(document.getElementById('do_vat')?.value||'')||15);
+    const orderDiscount=Math.max(0,parseFloat(document.getElementById('do_discount')?.value||'')||0);
+    const orderSubtotal=orderQty*orderUnitPrice;
+    const orderTaxable=Math.max(0,orderSubtotal-orderDiscount);
+    const orderVat=orderTaxable*orderVatRate/100;
+    const orderTotal=orderTaxable+orderVat;
     const receiptState=getReceiptAdjustState(selectedDelivery);
     const receiptProductState=getReceiptProductState(selectedDelivery);
     const attachmentStateMeta=getAttachmentMetaState(selectedDelivery);
@@ -2206,7 +2448,7 @@ PAGES.documents=function(){
           </div>
           <div style="text-align:right">
             <div class="pdf-doc-status">Signature Required</div>
-            <div class="pdf-doc-meta">Date: ${fmtDate(orderDate)}<br>Prepared by: ERP Dispatch Desk</div>
+            <div class="pdf-doc-meta">Date: ${fmtDate(orderDate)}<br>Invoice: ${escapeHtml(orderInvoiceNo)}<br>Prepared by: ERP Dispatch Desk</div>
           </div>
         </div>
         <div class="pdf-copy">
@@ -2216,11 +2458,15 @@ PAGES.documents=function(){
             <div class="pdf-data-card"><span>Delivery date</span><strong>${fmtDate(orderDate)}</strong></div>
             <div class="pdf-data-card"><span>Quantity</span><strong>${fmtN(orderQty)} KG</strong></div>
             <div class="pdf-data-card"><span>Driver</span><strong>${orderDriver}</strong></div>
+            <div class="pdf-data-card"><span>Unit price</span><strong>${fmtE(orderUnitPrice)}</strong></div>
+            <div class="pdf-data-card"><span>Payment terms</span><strong>${escapeHtml(orderTerms)}</strong></div>
+            <div class="pdf-data-card"><span>VAT</span><strong>${fmtN(orderVatRate)}%</strong></div>
+            <div class="pdf-data-card"><span>Invoice total</span><strong>${fmtE(orderTotal)}</strong></div>
           </div>
           <div class="pdf-highlight">
             <div>
-              <div class="pdf-highlight-label">Signing instruction</div>
-              <div class="pdf-inline-note">Both parties should verify quantity and sign the receipt at handover.</div>
+              <div class="pdf-highlight-label">Invoice breakdown</div>
+              <div class="pdf-inline-note">Subtotal ${fmtE(orderSubtotal)} · Discount ${fmtE(orderDiscount)} · VAT ${fmtE(orderVat)}</div>
             </div>
             <div class="pdf-inline-note" style="max-width:220px;text-align:right">${orderNotes}</div>
           </div>
@@ -2428,6 +2674,26 @@ PAGES.documents=function(){
                 <label>Driver</label>
                 <input id="do_driver" type="text" placeholder="Driver name">
               </div>
+              <div class="pdf-field">
+                <label>Invoice Number</label>
+                <input id="do_invoice" type="text" placeholder="INV-000123">
+              </div>
+              <div class="pdf-field">
+                <label>Unit Price (ETB)</label>
+                <input id="do_unit_price" type="number" step="0.01" value="${price.perKg}">
+              </div>
+              <div class="pdf-field">
+                <label>VAT %</label>
+                <input id="do_vat" type="number" step="0.01" value="15">
+              </div>
+              <div class="pdf-field">
+                <label>Discount (ETB)</label>
+                <input id="do_discount" type="number" step="0.01" value="0">
+              </div>
+              <div class="pdf-field full">
+                <label>Payment Terms</label>
+                <input id="do_terms" type="text" value="Net 7 days">
+              </div>
               <div class="pdf-field full">
                 <label>Special Instructions</label>
                 <textarea id="do_notes" placeholder="Route notes, handling instructions, or outlet contact details..."></textarea>
@@ -2617,7 +2883,7 @@ PAGES.documents=function(){
     renderPreview();
   }));
 
-  ['pcl_price','pcl_date','pcl_sm','pcl_msg','do_sm','do_qty','do_date','do_driver','do_notes','sr_adjust_kg','sr_adjust_note','sr_attach_fs','sr_attach_date'].forEach(id=>{
+  ['pcl_price','pcl_date','pcl_sm','pcl_msg','do_sm','do_qty','do_date','do_driver','do_invoice','do_unit_price','do_vat','do_discount','do_terms','do_notes','sr_adjust_kg','sr_adjust_note','sr_attach_fs','sr_attach_date'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
       el.addEventListener('input',renderPreview);
@@ -2748,7 +3014,18 @@ window.genDeliveryOrderForm=function(){
   const smId=document.getElementById('do_sm').value;
   const qty=parseFloat(document.getElementById('do_qty').value)||0;
   if(!smId||qty<=0){toast('Fill in supermarket and quantity','error');return;}
-  const body={supermarket_id:smId,qty,delivery_date:document.getElementById('do_date').value,driver:document.getElementById('do_driver').value,notes:document.getElementById('do_notes').value};
+  const body={
+    supermarket_id:smId,
+    qty,
+    delivery_date:document.getElementById('do_date').value,
+    driver:document.getElementById('do_driver').value,
+    invoice_no:document.getElementById('do_invoice')?.value,
+    unit_price:parseFloat(document.getElementById('do_unit_price')?.value||'0')||0,
+    vat_rate:parseFloat(document.getElementById('do_vat')?.value||'0')||0,
+    discount:parseFloat(document.getElementById('do_discount')?.value||'0')||0,
+    payment_terms:document.getElementById('do_terms')?.value,
+    notes:document.getElementById('do_notes').value
+  };
   if(!LIVE_API_ENABLED){
     openPrintableDoc('Delivery Order',buildDeliveryOrderBody(body));
     return;
