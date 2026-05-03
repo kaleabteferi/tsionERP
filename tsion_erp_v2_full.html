@@ -811,6 +811,42 @@ function openPrintableDoc(title,bodyHtml){
     .signature .line{margin-top:14px;border-top:1px solid #cbd5e1;padding-top:5px;min-width:220px}
     .footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
     .wm{position:absolute;right:18px;bottom:12px;font-size:92px;color:rgba(15,23,42,.04);font-weight:900;pointer-events:none;line-height:1}
+    .do-sheet{display:grid;grid-template-rows:1fr auto 1fr;gap:0;min-height:272mm}
+    .do-copy{padding:12px 10px 10px;border:1px solid var(--line);display:grid;grid-template-rows:auto auto auto auto auto auto;gap:10px}
+    .do-copy + .do-copy{margin-top:0}
+    .do-copy-tag{justify-self:end;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;padding:3px 8px;border:1px solid var(--line);border-radius:999px}
+    .do-header{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;align-items:start}
+    .do-brand{display:flex;gap:10px;align-items:flex-start}
+    .do-logo{width:34px;height:34px;border:1px solid #9ca3af;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#111827}
+    .do-company h3{margin:0;font-size:14px;font-weight:800;line-height:1.25}
+    .do-company p{margin:2px 0 0;font-size:10px;color:#4b5563;line-height:1.45}
+    .do-meta{border:1px solid var(--line);padding:8px 9px;border-radius:8px;background:#fafafa}
+    .do-title{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+    .do-meta-row{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#374151;padding:2px 0}
+    .do-delivery-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .do-field{border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:48px}
+    .do-field.full{grid-column:1/-1}
+    .do-field-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700}
+    .do-field-value{font-size:11px;font-weight:700;color:#111827;margin-top:3px;line-height:1.35}
+    .do-checks{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fafafa}
+    .do-check{display:flex;align-items:center;gap:6px;font-size:10px;color:#374151}
+    .do-box{width:12px;height:12px;border:1px solid #6b7280;display:inline-block}
+    .do-items{border:1px solid var(--line);border-radius:8px;overflow:hidden}
+    .do-items table{width:100%;border-collapse:collapse;font-size:10px}
+    .do-items th,.do-items td{border-top:1px solid var(--line);padding:7px 8px;text-align:left}
+    .do-items th{background:#f8fafc;border-top:none;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
+    .do-items td{height:24px}
+    .do-confirm{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .do-sign{border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:54px}
+    .do-line{margin-top:18px;border-top:1px solid #9ca3af;padding-top:4px;font-size:10px;color:#4b5563}
+    .do-remarks{border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:52px}
+    .do-remarks .do-line{margin-top:20px}
+    .do-footer{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;border-top:1px solid var(--line);padding-top:6px}
+    .do-note{font-size:9px;color:#4b5563;line-height:1.45;max-width:72%}
+    .do-track{font-size:9px;color:#4b5563;text-align:right;border:1px dashed #9ca3af;border-radius:6px;padding:6px 8px;min-width:110px}
+    .do-cut{position:relative;height:28px;display:flex;align-items:center;justify-content:center}
+    .do-cut::before{content:'';position:absolute;left:0;right:0;top:50%;border-top:2px dotted #9ca3af}
+    .do-cut span{position:relative;background:#fff;padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
     @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:18px}.no-print{display:none}}
   </style></head><body><div class="sheet">${bodyHtml}</div>
   <div class="no-print" style="text-align:center;padding:8px"><button onclick="window.print()">Print / Save as PDF</button></div></body></html>`;
@@ -903,22 +939,73 @@ function buildSalesReceiptBody(delivery,opts={}){
 function buildDeliveryOrderBody(payload){
   const company=normalizeCompany(DB.get('company'));
   const sm=getSupermarketById(payload.supermarket_id);
-  return `
-    <div class="doc-head">
-      <div class="brand"><div class="brand-badge">DO</div><div><h1 class="brand-title">${escapeHtml(company.name).toUpperCase()}</h1><div class="brand-sub">Dispatch authorization and handover copy<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
-      <div><div class="status">Signature Required</div><div class="meta">Date: ${escapeHtml(fmtDate(payload.delivery_date||today()))}<br>Prepared by: ERP Dispatch Desk</div></div>
-    </div>
-    <h2 class="doc-title">DELIVERY ORDER</h2>
-    <div class="grid">
-      <div class="card"><div class="label">Outlet</div><div class="value">${escapeHtml(sm?sm.name:'Unknown')}</div></div>
-      <div class="card"><div class="label">Quantity</div><div class="value">${fmtN(payload.qty)} KG</div></div>
-      <div class="card"><div class="label">Driver</div><div class="value">${escapeHtml(payload.driver||'Dispatch Team')}</div></div>
-      <div class="card"><div class="label">Outlet Branch</div><div class="value">${escapeHtml(sm?.branch||'-')}</div></div>
-    </div>
-    <div class="highlight"><div><div class="highlight-label">Instruction</div><div class="copy" style="margin-top:4px">${escapeHtml(payload.notes||'Both parties should verify quantity and sign at handover.')}</div></div><div class="highlight-value">${fmtN(payload.qty)} KG</div></div>
-    <div class="signature"><div><div class="line">Warehouse Signature</div></div><div><div class="line">Outlet Signature</div></div></div>
-    <div class="footer"><div>Official dispatch receipt</div><div>Page 1 of 1</div></div>
-    <div class="wm">DO</div>`;
+  const doNumber=payload.do_number||`DO-${String(Date.now()).slice(-6)}`;
+  const doDate=payload.delivery_date||today();
+  const customerName=sm?.name||'Customer';
+  const customerPhone=sm?.phone||'________________';
+  const customerAddress=sm?.address||'________________';
+  const driver=payload.driver||'________________';
+  const vehicle=payload.vehicle_plate||'________________';
+  const qty=fmtN(payload.qty||0);
+  const note=payload.notes||'';
+
+  const renderCopy=(copyLabel)=>`
+    <section class="do-copy">
+      <div class="do-copy-tag">${copyLabel}</div>
+      <div class="do-header">
+        <div class="do-brand">
+          <div class="do-logo">TS</div>
+          <div class="do-company">
+            <h3>${escapeHtml(company.name)}</h3>
+            <p>${escapeHtml(company.phone||'')}<br>${escapeHtml(company.address||'')}</p>
+          </div>
+        </div>
+        <div class="do-meta">
+          <div class="do-title">Delivery Order</div>
+          <div class="do-meta-row"><span>DO #</span><strong>${escapeHtml(doNumber)}</strong></div>
+          <div class="do-meta-row"><span>Date</span><strong>${escapeHtml(fmtDate(doDate))}</strong></div>
+        </div>
+      </div>
+
+      <div class="do-delivery-grid">
+        <div class="do-field"><div class="do-field-label">Delivered To</div><div class="do-field-value">${escapeHtml(customerName)}</div></div>
+        <div class="do-field"><div class="do-field-label">Phone Number</div><div class="do-field-value">${escapeHtml(customerPhone)}</div></div>
+        <div class="do-field full"><div class="do-field-label">Delivery Address</div><div class="do-field-value">${escapeHtml(customerAddress)}</div></div>
+        <div class="do-field"><div class="do-field-label">Driver Name</div><div class="do-field-value">${escapeHtml(driver)}</div></div>
+        <div class="do-field"><div class="do-field-label">Vehicle Plate</div><div class="do-field-value">${escapeHtml(vehicle)}</div></div>
+      </div>
+
+      <div class="do-checks">
+        <label class="do-check"><span class="do-box"></span> Full Delivery</label>
+        <label class="do-check"><span class="do-box"></span> Partial Delivery</label>
+      </div>
+
+      <div class="do-items">
+        <table>
+          <thead><tr><th>Item Name</th><th>Description</th><th>Quantity</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>Tsion Parboiled Brown Rice</td><td>Premium whole grain rice</td><td>${qty}</td><td>KG</td></tr>
+            <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+            <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="do-confirm">
+        <div class="do-sign"><div class="do-field-label">Received By (Name)</div><div class="do-line">Signature & Date</div></div>
+        <div class="do-sign"><div class="do-field-label">Checked By (Optional)</div><div class="do-line">Name & Signature</div></div>
+      </div>
+
+      <div class="do-remarks"><div class="do-field-label">Remarks</div><div class="do-line">${escapeHtml(note)||' '}</div></div>
+
+      <div class="do-footer">
+        <div class="do-note">Goods received in good condition unless otherwise stated.<br>Thank you for your business.</div>
+        <div class="do-track">Track Ref<br><strong>${escapeHtml(doNumber)}</strong></div>
+      </div>
+    </section>`;
+
+  return `<div class="do-sheet">${renderCopy('Customer Copy')}<div class="do-cut"><span>Cut Here</span></div>${renderCopy('Supplier Copy')}</div>`;
 }
 
 function buildPriceLetterBody(payload){
