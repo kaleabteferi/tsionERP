@@ -1034,13 +1034,13 @@ function buildSalesReceiptBody(delivery,opts={}){
     const amount=qty*price;
     return `<tr><td>${escapeHtml(line.name)}</td><td>${fmtN(qty)} KG</td><td>${fmtE(price)}</td><td>${fmtE(amount)}</td></tr>`;
   }).join('');
-  const docType=attachment?'PROFORMA INVOICE':'SALES INVOICE';
+  const docType=attachment?'SALES RECEIPT ATTACHMENT':'SALES INVOICE';
   return `
     <div class="doc-head">
       <div class="brand"><div class="brand-badge">TS</div><div><h1 class="brand-title">${escapeHtml(company.name)}</h1><div class="brand-sub">Premium food distribution<br>${escapeHtml(company.phone||'')} | ${escapeHtml(company.address||'')}</div></div></div>
-      <div><div class="status">${docType}</div><div class="meta">Invoice #: SR-${escapeHtml(fsNo)}<br>Issue Date: ${escapeHtml(fmtDate(docDate))}<br>Currency: ETB</div></div>
+      <div><div class="status">${docType}</div><div class="meta">Reference #: SR-${escapeHtml(fsNo)}<br>Issue Date: ${escapeHtml(fmtDate(docDate))}<br>Currency: ETB</div></div>
     </div>
-    <h2 class="doc-title">${attachment?'Proforma Invoice':'Sales Receipt / Invoice'}</h2>
+    <h2 class="doc-title">${attachment?'Sales Receipt Attachment':'Sales Receipt / Invoice'}</h2>
     <div class="highlight"><div><div class="highlight-label">Bill To</div><div class="copy" style="margin-top:4px;font-size:13px;font-weight:700;color:var(--ink)">${escapeHtml(delivery.smName)}</div><div class="copy" style="margin-top:2px">Reference Delivery: ${escapeHtml(delivery.fs)}</div></div><div class="highlight-value">${fmtN(sold)} KG</div></div>
     <div class="grid">
       <div class="card"><div class="label">Reference FS#</div><div class="value">${escapeHtml(fsNo)}</div></div>
