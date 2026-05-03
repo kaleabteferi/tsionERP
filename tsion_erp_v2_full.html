@@ -485,7 +485,14 @@ function loadExternalScript(src){
   });
 }
 
+function ensureLocalSeed(){
+  if(!DB.get('sms')||!DB.get('inv')||!DB.get('dels')||!DB.get('pays')||!DB.get('price')||!DB.get('company')){
+    DB.init();
+  }
+}
+
 function snapshotForCloud(){
+  ensureLocalSeed();
   return {
     sms:DB.get('sms')||[],
     dels:DB.get('dels')||[],
@@ -545,6 +552,7 @@ async function loadFirestoreSnapshot(force=false){
   if(snap.exists){
     applyCloudSnapshot(snap.data()||{});
   }else{
+    ensureLocalSeed();
     await docRef.set({...snapshotForCloud(),updatedAt:window.firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
   }
   FIRESTORE_STATE.lastLoaded=Date.now();
@@ -567,6 +575,16 @@ function scheduleFirestoreSave(){
   },300);
 }
 
+function withCloudPersist(result){
+  if(LIVE_API_ENABLED) return Promise.resolve(result);
+  return saveFirestoreSnapshot()
+    .then(()=>result)
+    .catch(err=>{
+      console.warn('Cloud persist after mutation failed:',err?.message||err);
+      return result;
+    });
+}
+
 function newId(prefix='id'){return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;}
 
 function parsePath(input){
@@ -582,7 +600,8 @@ function localApiFetch(path,options={}){
   const dels=DB.get('dels')||[];
   const pays=DB.get('pays')||[];
   const inv=DB.get('inv')||{stock:0,received:0,distributed:0,returned:0,atSupermarkets:0,txns:[]};
-  const price=DB.get('price')||{perKg:85,history:[]};
+  const rawPrice=DB.get('price');
+  const price=(rawPrice&&Number.isFinite(Number(rawPrice.perKg)))?rawPrice:{perKg:85,history:[]};
   const company=DB.get('company')||DEFAULT_COMPANY;
 
   if(method==='GET'&&pathname==='/api/supermarkets') return Promise.resolve(sms.map(sm=>({
@@ -621,7 +640,7 @@ function localApiFetch(path,options={}){
       creditLimit:toNum(body.credit_limit||20000),outstanding:0,status:body.status||'Active',terms:body.payment_terms||'Consignment',createdAt:new Date().toISOString()
     };
     sms.unshift(sm); DB.set('sms',sms);
-    return Promise.resolve({id:sm.id,code:sm.code,name:sm.name,branch:sm.branch,tin:sm.tin,contact_name:sm.contact,phone:sm.phone,email:sm.email,address:sm.address,lat:sm.lat,lng:sm.lng,credit_limit:sm.creditLimit,outstanding:sm.outstanding,status:sm.status,payment_terms:sm.terms,created_at:sm.createdAt});
+    return withCloudPersist({id:sm.id,code:sm.code,name:sm.name,branch:sm.branch,tin:sm.tin,contact_name:sm.contact,phone:sm.phone,email:sm.email,address:sm.address,lat:sm.lat,lng:sm.lng,credit_limit:sm.creditLimit,outstanding:sm.outstanding,status:sm.status,payment_terms:sm.terms,created_at:sm.createdAt});
   }
 
   if(method==='PUT'&&pathname.startsWith('/api/supermarkets/')){
@@ -631,13 +650,13 @@ function localApiFetch(path,options={}){
     sms[idx]={...sms[idx],name:body.name||'',branch:body.branch||'',tin:body.tin||'',contact:body.contact_name||'',phone:body.phone||'',email:body.email||'',address:body.address||'',lat:toNum(body.lat)||null,lng:toNum(body.lng)||null,creditLimit:toNum(body.credit_limit||sms[idx].creditLimit),status:body.status||sms[idx].status};
     DB.set('sms',sms);
     const sm=sms[idx];
-    return Promise.resolve({id:sm.id,code:sm.code,name:sm.name,branch:sm.branch,tin:sm.tin,contact_name:sm.contact,phone:sm.phone,email:sm.email,address:sm.address,lat:sm.lat,lng:sm.lng,credit_limit:sm.creditLimit,outstanding:sm.outstanding,status:sm.status,payment_terms:sm.terms,created_at:sm.createdAt});
+    return withCloudPersist({id:sm.id,code:sm.code,name:sm.name,branch:sm.branch,tin:sm.tin,contact_name:sm.contact,phone:sm.phone,email:sm.email,address:sm.address,lat:sm.lat,lng:sm.lng,credit_limit:sm.creditLimit,outstanding:sm.outstanding,status:sm.status,payment_terms:sm.terms,created_at:sm.createdAt});
   }
 
   if(method==='DELETE'&&pathname.startsWith('/api/supermarkets/')){
     const id=pathname.split('/').pop();
     DB.set('sms',sms.filter(s=>s.id!==id));
-    return Promise.resolve({success:true});
+    return withCloudPersist({success:true});
   }
 
   if(method==='POST'&&pathname==='/api/inventory/stock-in'){
@@ -647,7 +666,7 @@ function localApiFetch(path,options={}){
     inv.received=toNum(inv.received)+qty;
     inv.txns=[{id:`INV-${Date.now()}`,type:'stock_in',qty,date:body.transaction_date||today(),note:body.note||'',createdAt:new Date().toISOString()},...(inv.txns||[])];
     DB.set('inv',inv);
-    return Promise.resolve({success:true,ref:inv.txns[0].id,stock:{current_qty:inv.stock,total_received:inv.received}});
+    return withCloudPersist({success:true,ref:inv.txns[0].id,stock:{current_qty:inv.stock,total_received:inv.received}});
   }
 
   if(method==='POST'&&pathname==='/api/inventory/price'){
@@ -655,7 +674,7 @@ function localApiFetch(path,options={}){
     if(perKg<=0) return Promise.reject(new Error('Invalid price'));
     const history=[{p:perKg,date:body.effective_date||today(),notes:body.notes||''},...(price.history||[])];
     DB.set('price',{perKg,history});
-    return Promise.resolve({price_per_kg:perKg,effective_date:body.effective_date||today(),notes:body.notes||''});
+    return withCloudPersist({price_per_kg:perKg,effective_date:body.effective_date||today(),notes:body.notes||''});
   }
 
   if(method==='POST'&&pathname==='/api/deliveries'){
@@ -670,7 +689,7 @@ function localApiFetch(path,options={}){
     inv.stock=toNum(inv.stock)-qty;
     inv.txns=[{id:`INV-${Date.now()}`,type:'stock_out',qty,date:d.date,note:`Delivery ${d.fs}`,createdAt:new Date().toISOString()},...(inv.txns||[])];
     DB.set('inv',inv);
-    return Promise.resolve({id:d.id,fs_number:d.fs,supermarket_id:d.smId,supermarket_name:d.smName,qty_delivered:d.qty,qty_sold:d.sold,qty_returned:d.ret,delivery_date:d.date,status:d.status,driver:d.driver,notes:d.notes,created_at:d.createdAt});
+    return withCloudPersist({id:d.id,fs_number:d.fs,supermarket_id:d.smId,supermarket_name:d.smName,qty_delivered:d.qty,qty_sold:d.sold,qty_returned:d.ret,delivery_date:d.date,status:d.status,driver:d.driver,notes:d.notes,created_at:d.createdAt});
   }
 
   if(method==='PATCH'&&pathname.includes('/api/deliveries/')&&pathname.endsWith('/sales')){
@@ -687,7 +706,7 @@ function localApiFetch(path,options={}){
       if(smIdx>=0){sms[smIdx].outstanding=toNum(sms[smIdx].outstanding)+addSold*toNum(price.perKg||85); DB.set('sms',sms);}
     }
     if(addRet>0){inv.stock=toNum(inv.stock)+addRet; inv.txns=[{id:`RET-${Date.now()}`,type:'return',qty:addRet,date:today(),note:`Return from ${d.fs}`,createdAt:new Date().toISOString()},...(inv.txns||[])]; DB.set('inv',inv);}
-    return Promise.resolve({id:d.id,fs_number:d.fs,supermarket_id:d.smId,supermarket_name:d.smName,qty_delivered:d.qty,qty_sold:d.sold,qty_returned:d.ret,delivery_date:d.date,status:d.status});
+    return withCloudPersist({id:d.id,fs_number:d.fs,supermarket_id:d.smId,supermarket_name:d.smName,qty_delivered:d.qty,qty_sold:d.sold,qty_returned:d.ret,delivery_date:d.date,status:d.status});
   }
 
   if(method==='POST'&&pathname==='/api/payments'){
@@ -702,7 +721,7 @@ function localApiFetch(path,options={}){
     const p={id:newId('pay'),ref:'PAY-'+String(next).padStart(3,'0'),smId:sms[smIdx].id,smName:sms[smIdx].name,amount:amt,date:body.payment_date||today(),method:body.method||'Bank Transfer',createdAt:new Date().toISOString()};
     pays.unshift(p); DB.set('pays',pays);
     sms[smIdx].outstanding=outstanding-amt; DB.set('sms',sms);
-    return Promise.resolve({id:p.id,ref:p.ref,supermarket_id:p.smId,supermarket_name:p.smName,amount:p.amount,payment_date:p.date,method:p.method,created_at:p.createdAt});
+    return withCloudPersist({id:p.id,ref:p.ref,supermarket_id:p.smId,supermarket_name:p.smName,amount:p.amount,payment_date:p.date,method:p.method,created_at:p.createdAt});
   }
 
   if(pathname.startsWith('/api/pdf/')||pathname.startsWith('/api/export/')||pathname.startsWith('/api/uploads/attachments')){
@@ -927,43 +946,48 @@ function openPrintableDoc(title,bodyHtml){
     .signature .line{margin-top:14px;border-top:1px solid #cbd5e1;padding-top:5px;min-width:220px}
     .footer{margin-top:16px;padding-top:10px;border-top:1px solid var(--line);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
     .wm{position:absolute;right:18px;bottom:12px;font-size:92px;color:rgba(15,23,42,.04);font-weight:900;pointer-events:none;line-height:1}
-    .do-sheet{display:grid;grid-template-rows:1fr auto 1fr;gap:0;min-height:272mm}
-    .do-copy{padding:12px 10px 10px;border:1px solid var(--line);display:grid;grid-template-rows:auto auto auto auto auto auto;gap:10px}
+    .do-sheet{display:grid;grid-template-rows:1fr auto 1fr;gap:0;min-height:246mm}
+    .do-copy{padding:8px 8px 7px;border:1px solid var(--line);display:grid;grid-template-rows:auto auto auto auto auto auto;gap:7px}
     .do-copy + .do-copy{margin-top:0}
-    .do-copy-tag{justify-self:end;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;padding:3px 8px;border:1px solid var(--line);border-radius:999px}
-    .do-header{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;align-items:start}
+    .do-copy-tag{justify-self:end;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563;padding:2px 7px;border:1px solid var(--line);border-radius:999px}
+    .do-header{display:grid;grid-template-columns:1.2fr .8fr;gap:8px;align-items:start}
     .do-brand{display:flex;gap:10px;align-items:flex-start}
-    .do-logo{width:34px;height:34px;border:1px solid #9ca3af;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#111827}
-    .do-company h3{margin:0;font-size:14px;font-weight:800;line-height:1.25}
-    .do-company p{margin:2px 0 0;font-size:10px;color:#4b5563;line-height:1.45}
-    .do-meta{border:1px solid var(--line);padding:8px 9px;border-radius:8px;background:#fafafa}
-    .do-title{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
-    .do-meta-row{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#374151;padding:2px 0}
-    .do-delivery-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .do-field{border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:48px}
+    .do-logo{width:28px;height:28px;border:1px solid #9ca3af;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#111827}
+    .do-company h3{margin:0;font-size:12px;font-weight:800;line-height:1.2}
+    .do-company p{margin:1px 0 0;font-size:9px;color:#4b5563;line-height:1.35}
+    .do-meta{border:1px solid var(--line);padding:6px 7px;border-radius:7px;background:#fafafa}
+    .do-title{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+    .do-meta-row{display:flex;justify-content:space-between;gap:8px;font-size:9px;color:#374151;padding:1px 0}
+    .do-delivery-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .do-field{border:1px solid var(--line);border-radius:7px;padding:5px 6px;min-height:38px}
     .do-field.full{grid-column:1/-1}
-    .do-field-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700}
-    .do-field-value{font-size:11px;font-weight:700;color:#111827;margin-top:3px;line-height:1.35}
-    .do-checks{display:flex;gap:14px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px 8px;background:#fafafa}
-    .do-check{display:flex;align-items:center;gap:6px;font-size:10px;color:#374151}
-    .do-box{width:12px;height:12px;border:1px solid #6b7280;display:inline-block}
+    .do-field-label{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;font-weight:700}
+    .do-field-value{font-size:10px;font-weight:700;color:#111827;margin-top:2px;line-height:1.25}
+    .do-checks{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:7px;padding:5px 6px;background:#fafafa}
+    .do-check{display:flex;align-items:center;gap:5px;font-size:9px;color:#374151}
+    .do-box{width:10px;height:10px;border:1px solid #6b7280;display:inline-block}
     .do-items{border:1px solid var(--line);border-radius:8px;overflow:hidden}
-    .do-items table{width:100%;border-collapse:collapse;font-size:10px}
-    .do-items th,.do-items td{border-top:1px solid var(--line);padding:7px 8px;text-align:left}
-    .do-items th{background:#f8fafc;border-top:none;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
-    .do-items td{height:24px}
-    .do-confirm{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .do-sign{border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:54px}
-    .do-line{margin-top:18px;border-top:1px solid #9ca3af;padding-top:4px;font-size:10px;color:#4b5563}
-    .do-remarks{border:1px solid var(--line);border-radius:8px;padding:7px 8px;min-height:52px}
-    .do-remarks .do-line{margin-top:20px}
-    .do-footer{display:flex;justify-content:space-between;gap:10px;align-items:flex-end;border-top:1px solid var(--line);padding-top:6px}
-    .do-note{font-size:9px;color:#4b5563;line-height:1.45;max-width:72%}
-    .do-track{font-size:9px;color:#4b5563;text-align:right;border:1px dashed #9ca3af;border-radius:6px;padding:6px 8px;min-width:110px}
-    .do-cut{position:relative;height:28px;display:flex;align-items:center;justify-content:center}
+    .do-items table{width:100%;border-collapse:collapse;font-size:9px}
+    .do-items th,.do-items td{border-top:1px solid var(--line);padding:5px 6px;text-align:left}
+    .do-items th{background:#f8fafc;border-top:none;font-size:8px;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
+    .do-items td{height:18px}
+    .do-confirm{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .do-sign{border:1px solid var(--line);border-radius:7px;padding:5px 6px;min-height:42px}
+    .do-line{margin-top:12px;border-top:1px solid #9ca3af;padding-top:3px;font-size:9px;color:#4b5563}
+    .do-remarks{border:1px solid var(--line);border-radius:7px;padding:5px 6px;min-height:40px}
+    .do-remarks .do-line{margin-top:11px}
+    .do-footer{display:flex;justify-content:space-between;gap:8px;align-items:flex-end;border-top:1px solid var(--line);padding-top:4px}
+    .do-note{font-size:8px;color:#4b5563;line-height:1.35;max-width:72%}
+    .do-track{font-size:8px;color:#4b5563;text-align:right;border:1px dashed #9ca3af;border-radius:6px;padding:4px 6px;min-width:94px}
+    .do-cut{position:relative;height:18px;display:flex;align-items:center;justify-content:center}
     .do-cut::before{content:'';position:absolute;left:0;right:0;top:50%;border-top:2px dotted #9ca3af}
-    .do-cut span{position:relative;background:#fff;padding:2px 10px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
-    @media print{body{background:#fff}.sheet{border:none;margin:0;max-width:none;padding:18px}.no-print{display:none}}
+    .do-cut span{position:relative;background:#fff;padding:1px 7px;font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4b5563}
+    @media print{
+      body{background:#fff}
+      .sheet{border:none;margin:0;max-width:none;padding:18px}
+      .do-sheet{height:237mm;min-height:237mm}
+      .no-print{display:none}
+    }
   </style></head><body><div class="sheet">${bodyHtml}</div>
   <div class="no-print" style="text-align:center;padding:8px"><button onclick="window.print()">Print / Save as PDF</button></div></body></html>`;
   if(!win){
@@ -1219,7 +1243,7 @@ async function nav(page){
   }catch(err){
     toast(err.message||'Failed to load live data','error');
   }
-  document.getElementById('topActions').innerHTML='<span style="font-size:10px;color:var(--color-text-tertiary)">ETB '+(DB.get('price')||{perKg:85}).perKg+'/KG</span>';
+  document.getElementById('topActions').innerHTML='<span style="font-size:10px;color:var(--color-text-tertiary)">ETB '+(DB.get('price')?.perKg ?? 85)+'/KG</span>';
   PAGES[page]();
 }
 
