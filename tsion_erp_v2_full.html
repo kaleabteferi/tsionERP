@@ -1618,11 +1618,20 @@ window.genDeliveryOrder=function(delId){
     closeModal();
     return;
   }
+  const popup=window.open('about:blank','_blank');
+  if(!popup){
+    toast('Popup blocked. Allow popups and try again','error');
+    return;
+  }
+  popup.document.write('<title>Generating Delivery Order...</title><p style="font-family:Arial,sans-serif;padding:16px">Generating delivery order PDF...</p>');
   toast('Generating delivery order...','info');
   fetch(apiUrl('/api/pdf/delivery-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(r=>{if(!r.ok)throw new Error();return r.blob();})
-    .then(b=>{const u=URL.createObjectURL(b);window.open(u,'_blank');})
-    .catch(()=>toast('Backend not running. Start with: npm run dev','error'));
+    .then(b=>{const u=URL.createObjectURL(b);popup.location.href=u;})
+    .catch(()=>{
+      popup.close();
+      toast('Backend not running. Start with: npm run dev','error');
+    });
   closeModal();
 };
 
@@ -3207,11 +3216,20 @@ window.genDeliveryOrderForm=function(){
     toast('Delivery order opened in printable view','success');
     return;
   }
+  const popup=window.open('about:blank','_blank');
+  if(!popup){
+    toast('Popup blocked. Allow popups and try again','error');
+    return;
+  }
+  popup.document.write('<title>Generating Delivery Order...</title><p style="font-family:Arial,sans-serif;padding:16px">Generating delivery order PDF...</p>');
   toast('Generating delivery order...','info');
   fetch(apiUrl('/api/pdf/delivery-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
     .then(r=>{if(!r.ok)throw new Error();return r.blob();})
-    .then(b=>{const u=URL.createObjectURL(b);window.open(u,'_blank');})
-    .catch(()=>toast('Backend not running. Start with: npm run dev in /backend','error'));
+    .then(b=>{const u=URL.createObjectURL(b);popup.location.href=u;})
+    .catch(()=>{
+      popup.close();
+      toast('Backend not running. Start with: npm run dev in /backend','error');
+    });
 };
 
 window.genPriceLetter=function(){
