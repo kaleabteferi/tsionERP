@@ -411,10 +411,10 @@ tr:hover td{background:var(--color-background-secondary)}
 
 <script>
 const DEFAULT_COMPANY={
-  name:'Tsion Parboiled Brown Rice',
+  name:'ETETU LEGESSE DEGEBASSA - Tsion Parboiled Brown Rice',
   phone:'+251 94 413 5444',
   address:'Addis Ababa, Ethiopia',
-  tin:'',
+  tin:'N/A',
   tagline:'100% Natural · Healthy · Gluten Free · Made in Ethiopia'
 };
 
@@ -860,8 +860,13 @@ function normalizePrice(price){
 }
 
 function normalizeCompany(company){
+  const oldBrandName='Tsion Parboiled Brown Rice';
+  const providedName=(company?.name||'').trim();
+  const resolvedName=(!providedName||providedName===oldBrandName)
+    ? DEFAULT_COMPANY.name
+    : providedName;
   return {
-    name:company?.name||DEFAULT_COMPANY.name,
+    name:resolvedName,
     phone:company?.phone||DEFAULT_COMPANY.phone,
     address:company?.address||DEFAULT_COMPANY.address,
     tin:company?.tin||DEFAULT_COMPANY.tin,
@@ -1261,6 +1266,7 @@ function buildPriceLetterBody(payload){
   const effDate=fmtDate(payload.effective_date||today());
   const newPrice=fmtN(payload.new_price);
   const oldPrice=fmtN(current);
+  const companyTin=escapeHtml(company.tin||'N/A');
   // One letter page per target, separated by page-break
   const pages=targets.map((sm,idx)=>{
     const refNum=`PCL-${String(Date.now()).slice(-5)}-${String(idx+1).padStart(3,'0')}`;
@@ -1281,6 +1287,7 @@ function buildPriceLetterBody(payload){
           <div class="pl-ref-row"><span>Ref:</span><span>${escapeHtml(refNum)}</span></div>
           <div class="pl-ref-row"><span>Date:</span><strong>${refDate}</strong></div>
           <div class="pl-ref-row"><span>Effective:</span><strong>${effDate}</strong></div>
+          <div class="pl-ref-row"><span>TIN:</span><strong>${companyTin}</strong></div>
         </div>
       </div>
       <div class="pl-divider"></div>
@@ -2543,6 +2550,7 @@ PAGES.documents=function(){
       const previewCount=prevTargets.length;
       const previewMsg=priceMessage;
       const previewRef=`PCL-${String(Date.now()).slice(-5)}-001`;
+      const previewTin=escapeHtml(company.tin||'N/A');
       previewBody.innerHTML=`
         <div class="pdf-watermark">PCL</div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:0">
@@ -2557,6 +2565,7 @@ PAGES.documents=function(){
             <div style="display:flex;justify-content:space-between;color:#6b7280"><span>Ref:</span><span>${previewRef}</span></div>
             <div style="display:flex;justify-content:space-between;color:#6b7280"><span>Date:</span><strong style="color:var(--pdf-ink)">${fmtDate(today())}</strong></div>
             <div style="display:flex;justify-content:space-between;color:#6b7280"><span>Effective:</span><strong style="color:var(--pdf-ink)">${fmtDate(effectiveDate)}</strong></div>
+            <div style="display:flex;justify-content:space-between;color:#6b7280"><span>TIN:</span><strong style="color:var(--pdf-ink)">${previewTin}</strong></div>
           </div>
         </div>
         <hr style="border:none;border-top:2px solid var(--pdf-line);margin:10px 0">
