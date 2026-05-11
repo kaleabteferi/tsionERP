@@ -968,6 +968,28 @@ function escapeHtml(value){
     "'":'&#39;'
   }[char]));
 }
+function companyStampSvgMarkup(size=118){
+  const safeSize=Math.max(80,Number(size)||118);
+  return `<svg width="${safeSize}" height="${safeSize}" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-label="Company stamp" role="img">
+    <defs>
+      <style>
+        .s-ring{fill:none;stroke:#2b84c6;stroke-width:4}
+        .s-ring-thin{fill:none;stroke:#2b84c6;stroke-width:2}
+        .s-text{font:700 12px 'Segoe UI', Arial, sans-serif;fill:#2b84c6;letter-spacing:.5px}
+        .s-mark{font:800 70px 'Segoe UI', Arial, sans-serif;fill:#2b84c6}
+        .s-phone{font:700 13px 'Segoe UI', Arial, sans-serif;fill:#2b84c6}
+      </style>
+      <path id="stampTopArc" d="M 28 110 A 82 82 0 0 1 192 110"/>
+      <path id="stampBottomArc" d="M 28 110 A 82 82 0 0 0 192 110"/>
+    </defs>
+    <circle class="s-ring" cx="110" cy="110" r="102"/>
+    <circle class="s-ring-thin" cx="110" cy="110" r="82"/>
+    <text class="s-text"><textPath href="#stampTopArc" startOffset="50%" text-anchor="middle">ETETU LEGESSE DEGEBASSA</textPath></text>
+    <text class="s-text"><textPath href="#stampBottomArc" startOffset="50%" text-anchor="middle">RETAIL TRADE IN AGRICULTURAL PRODUCTS</textPath></text>
+    <text class="s-mark" x="110" y="122" text-anchor="middle">E</text>
+    <text class="s-phone" x="110" y="152" text-anchor="middle">0944 135444</text>
+  </svg>`;
+}
 function openPrintableDoc(title,bodyHtml){
   const win=window.open('','_blank');
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escapeHtml(title)}</title>
@@ -1327,6 +1349,7 @@ function buildPriceLetterBody(payload){
       <div class="pl-signature-block">
         <div class="pl-sign-side">
           <div class="pl-sign-area"></div>
+          <div class="pl-stamp">${companyStampSvgMarkup(108)}</div>
           <div class="pl-sign-label">Authorized Signatory — ${escapeHtml(company.name)}</div>
           <div class="pl-sign-sub">${escapeHtml(company.phone||'')} &nbsp;|&nbsp; ${escapeHtml(company.address||'')}</div>
         </div>
@@ -1371,6 +1394,8 @@ function buildPriceLetterBody(payload){
     .pl-signature-block{display:flex;gap:20px;margin-top:24px;padding-top:14px;border-top:1px solid var(--line)}
     .pl-sign-side{flex:1}
     .pl-sign-area{height:52px;border-bottom:1px solid var(--ink);margin-bottom:6px}
+    .pl-stamp{margin:4px 0 6px;opacity:.96}
+    .pl-stamp svg{display:block;max-width:112px;height:auto}
     .pl-sign-label{font-size:11px;font-weight:700;color:var(--ink)}
     .pl-sign-sub{font-size:10px;color:var(--muted);margin-top:2px}
     .pl-footer{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:18px;padding-top:8px;border-top:1px dashed var(--line)}
@@ -2586,7 +2611,7 @@ PAGES.documents=function(){
         </table>
         <div style="font-size:11px;line-height:1.65;color:#374151;margin-top:10px">Thank you for your continued partnership. Please do not hesitate to contact us with any questions.</div>
         <div style="display:flex;gap:16px;margin-top:16px;padding-top:12px;border-top:1px solid var(--pdf-line)">
-          <div style="flex:1"><div style="height:36px;border-bottom:1px solid var(--pdf-ink);margin-bottom:5px"></div><div style="font-size:9px;font-weight:700">Authorized Signatory — ${companyName}</div></div>
+          <div style="flex:1"><div style="height:36px;border-bottom:1px solid var(--pdf-ink);margin-bottom:5px"></div><div style="margin:4px 0 6px">${companyStampSvgMarkup(90)}</div><div style="font-size:9px;font-weight:700">Authorized Signatory — ${companyName}</div></div>
           <div style="flex:1"><div style="height:36px;border-bottom:1px solid var(--pdf-ink);margin-bottom:5px"></div><div style="font-size:9px;font-weight:700">Recipient Acknowledgement</div></div>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:9px;color:#9ca3af;margin-top:14px;padding-top:8px;border-top:1px dashed var(--pdf-line)">
@@ -3273,7 +3298,7 @@ window.previewPriceLetter=function(){
         <div style="color:var(--brand)">New price: <strong>ETB ${np}/KG</strong> (effective ${ed})</div>
       </div>
       <p style="margin-bottom:8px">Thank you for your understanding and continued partnership.</p>
-      <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)">Sincerely,<br><strong>${escapeHtml(company.name)}</strong><br><span style="color:var(--color-text-secondary);font-size:10px">${escapeHtml([company.phone,company.address].filter(Boolean).join(' | '))}</span></div>
+      <div style="margin-top:14px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary)"><div style="margin-bottom:6px">${companyStampSvgMarkup(98)}</div>Sincerely,<br><strong>${escapeHtml(company.name)}</strong><br><span style="color:var(--color-text-secondary);font-size:10px">${escapeHtml([company.phone,company.address].filter(Boolean).join(' | '))}</span></div>
     </div>
     <div class="form-actions"><button class="btn" onclick="closeModal()">Close preview</button><button class="btn btn-primary" onclick="closeModal();genPriceLetter()">Generate PDF</button></div>
   </div>`);
