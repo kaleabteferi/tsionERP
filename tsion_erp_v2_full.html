@@ -414,7 +414,7 @@ const DEFAULT_COMPANY={
   name:'ETETU LEGESSE DEGEBASSA - Tsion Parboiled Brown Rice',
   phone:'+251 94 413 5444',
   address:'Addis Ababa, Ethiopia',
-  tin:'N/A',
+  tin:'0007843241',
   tagline:'100% Natural · Healthy · Gluten Free · Made in Ethiopia'
 };
 
@@ -865,11 +865,12 @@ function normalizeCompany(company){
   const resolvedName=(!providedName||providedName===oldBrandName)
     ? DEFAULT_COMPANY.name
     : providedName;
+  const providedTin=(company?.tin||'').trim();
   return {
     name:resolvedName,
     phone:company?.phone||DEFAULT_COMPANY.phone,
     address:company?.address||DEFAULT_COMPANY.address,
-    tin:company?.tin||DEFAULT_COMPANY.tin,
+    tin:providedTin&&providedTin!=='N/A'?providedTin:DEFAULT_COMPANY.tin,
     tagline:company?.tagline||DEFAULT_COMPANY.tagline
   };
 }
@@ -3210,17 +3211,40 @@ window.genPriceLetter=function(){
   const ed=document.getElementById('pcl_date').value;
   if(!np||np<=0||!ed){toast('Enter new price and effective date','error');return;}
   const smSel=document.getElementById('pcl_sm').value;
-  const sms=DB.get('sms')||[];
   const activeSmsForLetter=(DB.get('sms')||[]).filter(s=>s.status==='Active');
-  const body={new_price:np,effective_date:ed,message_body:document.getElementById('pcl_msg').value||null,supermarket_ids:smSel==='all'?activeSmsForLetter.map(s=>s.id):[smSel]};
+  const selectedIds=smSel==='all'?activeSmsForLetter.map(s=>s.id):[smSel];
+  const messageBody=document.getElementById('pcl_msg').value||null;
+  const buildLetterPayload=(supermarketId)=>({
+    new_price:np,
+    effective_date:ed,
+    message_body:messageBody,
+    supermarket_ids:[supermarketId]
+  });
+  if(!selectedIds.length){toast('No active supermarkets available','error');return;}
   if(!LIVE_API_ENABLED){
-    openPrintableDoc('Price Change Letter',buildPriceLetterBody(body));
+    selectedIds.forEach((supermarketId,index)=>{
+      const supermarket=activeSmsForLetter.find(s=>s.id===supermarketId)||(DB.get('sms')||[]).find(s=>s.id===supermarketId);
+      const title=supermarket?`Price Change Letter - ${supermarket.name}`:'Price Change Letter';
+      // Stagger popup creation slightly so browsers are less likely to collapse multiple windows.
+      setTimeout(()=>openPrintableDoc(title,buildPriceLetterBody(buildLetterPayload(supermarketId))),index*120);
+    });
+    toast(`Opened ${selectedIds.length} price letter${selectedIds.length===1?'':'s'} separately`,'success');
     return;
   }
-  toast('Generating price letters...','info');
-  fetch(apiUrl('/api/pdf/price-change-letter'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-    .then(r=>{if(!r.ok)throw new Error();return r.blob();})
-    .then(b=>{const u=URL.createObjectURL(b);window.open(u,'_blank');})
+  toast(`Generating ${selectedIds.length} price letter${selectedIds.length===1?'':'s'}...`,'info');
+  Promise.all(selectedIds.map((supermarketId,index)=>
+    fetch(apiUrl('/api/pdf/price-change-letter'),{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(buildLetterPayload(supermarketId))
+    })
+      .then(r=>{if(!r.ok)throw new Error();return r.blob();})
+      .then(b=>{
+        const u=URL.createObjectURL(b);
+        setTimeout(()=>window.open(u,'_blank'),index*120);
+      })
+  ))
+    .then(()=>toast(`Generated ${selectedIds.length} separate price letter PDF${selectedIds.length===1?'':'s'}`,'success'))
     .catch(()=>toast('Backend not running. Start: npm run dev in /backend','error'));
 };
 
@@ -3228,16 +3252,19 @@ window.previewPriceLetter=function(){
   const np=document.getElementById('pcl_price').value||'[NEW PRICE]';
   const ed=document.getElementById('pcl_date').value||'[DATE]';
   const sms=DB.get('sms')||[];
+  const smSel=document.getElementById('pcl_sm')?.value||'all';
+  const previewCount=smSel==='all'?sms.filter(s=>s.status==='Active').length:1;
   const company=normalizeCompany(DB.get('company'));
   modal(`<div class="modal">
     <div class="modal-title">Letter preview <span class="modal-close" onclick="closeModal()">✕</span></div>
     <div style="background:var(--color-background-secondary);padding:14px;border-radius:8px;font-size:12px;line-height:1.7">
       <div style="background:var(--brand);color:#fff;padding:10px;border-radius:6px;margin-bottom:14px;text-align:center">
         <div style="font-weight:500;font-size:13px">${escapeHtml(company.name)}</div>
-        <div style="font-size:10px;opacity:.8">${escapeHtml(company.tagline)} · ${escapeHtml(company.phone)}</div>
+        <div style="font-size:10px;opacity:.8">${escapeHtml(company.tagline)} · ${escapeHtml(company.phone)} · TIN ${escapeHtml(company.tin||DEFAULT_COMPANY.tin)}</div>
       </div>
       <div style="color:var(--color-text-secondary);font-size:11px;margin-bottom:8px">Ref: PCL-XXXXX · Date: ${new Date().toLocaleDateString()}</div>
       <p style="margin-bottom:8px">To: <strong>[Each active supermarket — ${sms.filter(s=>s.status==='Active').length} letters]</strong></p>
+      <p style="margin-bottom:8px;color:var(--color-text-secondary)">${previewCount>1?`Generate PDF will open ${previewCount} separate letter files, one per supermarket.`:'Generate PDF will open one separate letter file for the selected supermarket.'}</p>
       <p style="font-weight:500;color:var(--brand);margin:10px 0">SUBJECT: PRICE ADJUSTMENT NOTICE</p>
       <p style="margin-bottom:8px">Dear Valued Partner,</p>
       <p style="margin-bottom:8px">We wish to inform you that ${escapeHtml(company.name)} will be adjusting the selling price of our product, effective ${ed}.</p>
