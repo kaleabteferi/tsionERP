@@ -2537,12 +2537,9 @@ PAGES.documents=function(){
     const orderInvoiceNo=(document.getElementById('do_invoice')?.value||`INV-${String(Date.now()).slice(-6)}`).trim();
     const orderTerms=(document.getElementById('do_terms')?.value||'Net 7 days').trim();
     const orderUnitPrice=parseFloat(document.getElementById('do_unit_price')?.value||'')||currentPrice;
-    const orderVatRate=Math.max(0,parseFloat(document.getElementById('do_vat')?.value||'')||15);
     const orderDiscount=Math.max(0,parseFloat(document.getElementById('do_discount')?.value||'')||0);
     const orderSubtotal=orderQty*orderUnitPrice;
-    const orderTaxable=Math.max(0,orderSubtotal-orderDiscount);
-    const orderVat=orderTaxable*orderVatRate/100;
-    const orderTotal=orderTaxable+orderVat;
+    const orderTotal=Math.max(0,orderSubtotal-orderDiscount);
     const orderTotalInWords=amountToWords(orderTotal);
     const receiptState=getReceiptAdjustState(selectedDelivery);
     const receiptProductState=getReceiptProductState(selectedDelivery);
@@ -2642,13 +2639,12 @@ PAGES.documents=function(){
             <div class="pdf-data-card"><span>Driver</span><strong>${orderDriver}</strong></div>
             <div class="pdf-data-card"><span>Unit price</span><strong>${fmtE(orderUnitPrice)}</strong></div>
             <div class="pdf-data-card"><span>Payment terms</span><strong>${escapeHtml(orderTerms)}</strong></div>
-            <div class="pdf-data-card"><span>VAT</span><strong>${fmtN(orderVatRate)}%</strong></div>
-            <div class="pdf-data-card"><span>Invoice total</span><strong>${fmtE(orderTotal)}</strong></div>
+            <div class="pdf-data-card"><span>Total</span><strong>${fmtE(orderTotal)}</strong></div>
           </div>
           <div class="pdf-highlight">
             <div>
               <div class="pdf-highlight-label">Invoice breakdown</div>
-              <div class="pdf-inline-note">Subtotal ${fmtE(orderSubtotal)} · Discount ${fmtE(orderDiscount)} · VAT ${fmtE(orderVat)}</div>
+              <div class="pdf-inline-note">Subtotal ${fmtE(orderSubtotal)} · Discount ${fmtE(orderDiscount)}</div>
             </div>
             <div class="pdf-inline-note" style="max-width:220px;text-align:right">${orderNotes}</div>
           </div>
@@ -2867,10 +2863,6 @@ PAGES.documents=function(){
                 <input id="do_unit_price" type="number" step="0.01" value="${price.perKg}">
               </div>
               <div class="pdf-field">
-                <label>VAT %</label>
-                <input id="do_vat" type="number" step="0.01" value="15">
-              </div>
-              <div class="pdf-field">
                 <label>Discount (ETB)</label>
                 <input id="do_discount" type="number" step="0.01" value="0">
               </div>
@@ -3067,7 +3059,7 @@ PAGES.documents=function(){
     renderPreview();
   }));
 
-  ['pcl_price','pcl_date','pcl_sm','pcl_msg','do_sm','do_qty','do_date','do_driver','do_invoice','do_unit_price','do_vat','do_discount','do_terms','do_notes','sr_adjust_kg','sr_adjust_note','sr_attach_fs','sr_attach_date'].forEach(id=>{
+  ['pcl_price','pcl_date','pcl_sm','pcl_msg','do_sm','do_qty','do_date','do_driver','do_invoice','do_unit_price','do_discount','do_terms','do_notes','sr_adjust_kg','sr_adjust_note','sr_attach_fs','sr_attach_date'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){
       el.addEventListener('input',renderPreview);
@@ -3205,7 +3197,7 @@ window.genDeliveryOrderForm=function(){
     driver:document.getElementById('do_driver').value,
     invoice_no:document.getElementById('do_invoice')?.value,
     unit_price:parseFloat(document.getElementById('do_unit_price')?.value||'0')||0,
-    vat_rate:parseFloat(document.getElementById('do_vat')?.value||'0')||0,
+
     discount:parseFloat(document.getElementById('do_discount')?.value||'0')||0,
     payment_terms:document.getElementById('do_terms')?.value,
     notes:document.getElementById('do_notes').value
